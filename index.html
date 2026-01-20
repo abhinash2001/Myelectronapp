@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+
+    /* ---------------------------
+       BASE LIGHT MODE
+    ---------------------------- */
+    body {
+      font-family: "Segoe UI", Arial;
+      background: #eef3f7;
+      padding: 20px;
+      margin: 0;
+      color: #333;
+      transition: 0.3s ease;
+    }
+
+    /* ---------------------------
+       HEADER SECTION
+    ---------------------------- */
+    .header-section {
+      width: 100%;
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      margin-bottom: 25px;
+      text-align: center;
+      transition: 0.3s ease;
+    }
+
+    body.dark .header-section {
+      background: #121317;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+    }
+
+    .title-modern {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      margin: 0;
+      margin-bottom: 10px;
+      color: #2b4c7e;
+      text-shadow: 0 0 8px rgba(43,76,126,0.25);
+    }
+
+    body.dark .title-modern {
+      color: #9cc2ff;
+      text-shadow: 0 0 12px rgba(156,194,255,0.5);
+    }
+
+    /* ---------------------------
+       THEME TOGGLE
+    ---------------------------- */
+    .theme-toggle {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .switch {
+      position: relative;
+      width: 62px;
+      height: 32px;
+    }
+
+    .switch input {
+      opacity: 0;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #b5b5b5;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: 0.4s;
+    }
+
+    .slider:before {
+      content: "🌞";
+      position: absolute;
+      height: 26px;
+      width: 26px;
+      background: white;
+      border-radius: 50%;
+      left: 3px;
+      bottom: 3px;
+      transition: 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    input:checked + .slider {
+      background-color: #4caf50;
+      box-shadow: 0 0 10px #4caf50;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(30px) rotate(360deg);
+      content: "🌙";
+    }
+
+    /* ---------------------------
+       EXPORT BUTTON
+    ---------------------------- */
+    .export-container {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 18px;
+    }
+
+    .export-btn {
+      background: linear-gradient(135deg, #6ea8ff, #4072ee);
+      color: white;
+      padding: 12px 22px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 6px 16px rgba(64,114,238,0.3);
+      transition: 0.3s;
+    }
+
+    .export-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 22px rgba(64,114,238,0.4);
+    }
+
+    .export-menu {
+      display: none;
+      position: absolute;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      width: 190px;
+      overflow: hidden;
+      animation: fadeDown 0.25s ease;
+      z-index: 20;
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .export-menu button {
+      padding: 12px 16px;
+      width: 100%;
+      border: none;
+      background: none;
+      text-align: left;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+
+    .export-menu button:hover {
+      background: rgba(0,0,0,0.06);
+      padding-left: 25px;
+    }
+
+    body.dark .export-menu {
+      background: rgba(40,40,40,0.9);
+    }
+
+    body.dark .export-menu button {
+      color: #e2e8f0;
+    }
+
+    body.dark .export-menu button:hover {
+      background: rgba(255,255,255,0.08);
+    }
+
+    /* ---------------------------
+       FILTER BOX
+    ---------------------------- */
+    .filter-box {
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(12px);
+      padding: 16px;
+      border-radius: 16px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+      box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
+    }
+
+    body.dark .filter-box {
+      background: rgba(30, 32, 38, 0.75);
+      border-color: rgba(255,255,255,0.1);
+    }
+
+    .filter-box input,
+    .filter-box select {
+      padding: 12px 14px;
+      border-radius: 12px;
+      border: 1px solid #d0d6e0;
+      min-width: 160px;
+      background: #f5f7fb;
+      transition: 0.25s;
+    }
+
+    body.dark .filter-box input,
+    body.dark .filter-box select {
+      background: #1f2126;
+      border-color: #50535a;
+      color: #e2e8f0;
+    }
+
+    .filter-box button {
+      padding: 10px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      background: transparent;
+      border: 2px solid #2b4c7e;
+      color: #2b4c7e;
+      font-weight: 600;
+      transition: 0.25s ease;
+    }
+
+    .filter-box button:hover {
+      background: #2b4c7e;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0px 4px 10px rgba(43, 76, 126, 0.3);
+    }
+
+    body.dark .filter-box button {
+      color: #9cc2ff;
+      border-color: #9cc2ff;
+    }
+
+    body.dark .filter-box button:hover {
+      background: #9cc2ff;
+      color: #1b1f25;
+    }
+
+    /* ---------------------------
+       TABLE
+    ---------------------------- */
+    #dataTable {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    #dataTable th {
+      background: #2b4c7e;
+      color: white;
+      padding: 12px;
+    }
+
+    #dataTable td {
+      padding: 10px;
+      border-bottom: 1px solid #e2e6ea;
+      text-align: center;
+    }
+
+    body.dark #dataTable {
+      background: #1e1f24;
+    }
+
+    body.dark #dataTable th {
+      background: #292b30;
+      color: #d0d4da;
+    }
+
+    body.dark #dataTable td {
+      color: #e2e8f0;
+      border-color: #2c2d33;
+    }
+
+    /* ---------------------------
+       BADGES
+    ---------------------------- */
+    .badge-pass {
+      background: #2ecc71;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .badge-fail {
+      background: #e74c3c;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    /* ---------------------------
+       PAGINATION
+    ---------------------------- */
+    #pagination {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    #pagination button {
+      background: #2b4c7e;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HEADER SECTION -->
+  <div class="header-section">
+    <h1 class="title-modern">DATABASE LIST EXPORTER</h1>
+
+    <div class="theme-toggle">
+      <span id="themeLabel">🌞 Light Mode</span>
+      <label class="switch">
+        <input type="checkbox" id="themeSwitch" />
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <!-- EXPORT BUTTON -->
+  <div class="export-container">
+    <button id="exportMainBtn" class="export-btn">Export ▼</button>
+
+    <div id="exportMenu" class="export-menu">
+      <button onclick="window.converter.exportPDF()">📄 PDF</button>
+      <button onclick="window.converter.exportExcel()">📊 Excel</button>
+      <button onclick="window.converter.exportWord()">📝 Word</button>
+    </div>
+  </div>
+
+  <button class="export-btn" onclick="goToCharts()" style="margin-left: 10px;">📊 View Charts</button>
+
+  <!-- FILTER BOX -->
+  <div class="filter-box">
+    <input type="date" id="dateFrom" />
+    <input type="date" id="dateTo" />
+
+    <select id="modeFilter">
+      <option value="">All Modes</option>
+      <option value="PRODUCTION">Production</option>
+      <option value="VALIDATION">Validation</option>
+    </select>
+
+    <input type="text" id="operatorFilter" placeholder="Operator ID" />
+
+    <button onclick="applyFilters()">Apply</button>
+    <button onclick="resetFilters()">Reset</button>
+  </div>
+
+  <table id="dataTable"></table>
+
+  <div id="pagination"></div>
+
+  <script>
+    let allData = [];
+    let filteredData = [];
+    let currentPage = 1;
+    const rowsPerPage = 20;
+
+    function cleanDateTime(v) {
+      const d = new Date(v);
+      if (isNaN(d)) return v;
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+    }
+
+    // THEME INIT
+    const themeSwitch = document.getElementById("themeSwitch");
+    const themeLabel = document.getElementById("themeLabel");
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+      themeSwitch.checked = true;
+      themeLabel.textContent = "🌙 Dark Mode";
+    }
+
+    themeSwitch.addEventListener("change", () => {
+      if (themeSwitch.checked) {
+        document.body.classList.add("dark");
+        themeLabel.textContent = "🌙 Dark Mode";
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark");
+        themeLabel.textContent = "🌞 Light Mode";
+        localStorage.setItem("theme", "light");
+      }
+    });
+
+    // LOAD DATA
+    async function loadData() {
+      try {
+        allData = await window.database.getData();
+        console.log("Data loaded:", allData.length, "records");
+        renderTable();
+      } catch (error) {
+        console.error("Error loading data:", error);
+      }
+    }
+
+    // RENDER TABLE
+    function renderTable() {
+      const table = document.getElementById("dataTable");
+      const pagination = document.getElementById("pagination");
+
+      let data = filteredData.length ? filteredData : allData;
+      let start = (currentPage - 1) * rowsPerPage;
+      let pageSlice = data.slice(start, start + rowsPerPage);
+
+      if (!pageSlice.length) {
+        table.innerHTML = "<tr><td>No Data</td></tr>";
+        return;
+      }
+
+      let header = "<tr>";
+      for (let k in pageSlice[0]) header += `<th>${k}</th>`;
+      header += "</tr>";
+
+      let rows = "";
+      pageSlice.forEach(row => {
+        rows += "<tr>";
+
+        for (let key in row) {
+          let val = row[key];
+
+          if (key === "DateandTime") val = cleanDateTime(val);
+          if (key === "Mode") {
+            val = val.replace("PRODUC ION", "PRODUCTION").replace("VALIDA ION", "VALIDATION");
+          }
+
+          if (key === "Result") {
+            const c = val.trim().toUpperCase();
+            if (c === "PASS") {
+              rows += `<td><span class="badge-pass">PASS</span></td>`;
+              continue;
+            }
+            if (c === "FAIL") {
+              rows += `<td><span class="badge-fail">FAIL</span></td>`;
+              continue;
+            }
+          }
+
+          rows += `<td>${val}</td>`;
+        }
+
+        rows += "</tr>";
+      });
+
+      table.innerHTML = header + rows;
+
+      const total = Math.ceil(data.length / rowsPerPage);
+      pagination.innerHTML = `
+        <button onclick="changePage(-1)">Previous</button>
+        Page ${currentPage} of ${total}
+        <button onclick="changePage(1)">Next</button>
+      `;
+    }
+
+    function changePage(direction) {
+      const data = filteredData.length ? filteredData : allData;
+      const total = Math.ceil(data.length / rowsPerPage);
+
+      if (direction === 1 && currentPage < total) currentPage++;
+      if (direction === -1 && currentPage > 1) currentPage--;
+      renderTable();
+    }
+
+    // FILTERS
+    function applyFilters() {
+      const df = document.getElementById("dateFrom").value;
+      const dt = document.getElementById("dateTo").value;
+      const mode = document.getElementById("modeFilter").value;
+      const op = document.getElementById("operatorFilter").value.toUpperCase();
+
+      filteredData = allData.filter(row => {
+        let ok = true;
+
+        if (df) ok = ok && new Date(row.DateandTime) >= new Date(df);
+        if (dt) ok = ok && new Date(row.DateandTime) <= new Date(dt);
+
+        let cleanMode = row.Mode.replace("PRODUC ION","PRODUCTION").replace("VALIDA ION","VALIDATION");
+        if (mode) ok = ok && cleanMode === mode;
+
+        if (op) ok = ok && row.OperatorID?.toUpperCase().includes(op);
+
+        return ok;
+      });
+
+      currentPage = 1;
+      renderTable();
+    }
+
+    function resetFilters() {
+      filteredData = [];
+      document.getElementById("dateFrom").value = "";
+      document.getElementById("dateTo").value = "";
+      document.getElementById("modeFilter").value = "";
+      document.getElementById("operatorFilter").value = "";
+      currentPage = 1;
+      renderTable();
+    }
+
+    // EXPORT MENU
+    document.getElementById("exportMainBtn").addEventListener("click", () => {
+      const menu = document.getElementById("exportMenu");
+      menu.style.display = menu.style.display === "block" ? "none" : "block";
+    });
+
+    document.addEventListener("click", (e) => {
+      const btn = document.getElementById("exportMainBtn");
+      const menu = document.getElementById("exportMenu");
+      if (!btn.contains(e.target) && !menu.contains(e.target)) {
+        menu.style.display = "none";
+      }
+    });
+
+    function goToCharts() {
+      window.location.href = 'charts.html';
+    }
+
+    loadData();
+  </script>
+</body>
+</html>

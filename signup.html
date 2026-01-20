@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  font-family: Arial;
+  background: #111;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+.box {
+  width: 330px;
+  padding: 25px;
+  background: #1c1c1c;
+  border-radius: 10px;
+}
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 10px 0;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #222;
+  color: white;
+  font-size: 15px;
+}
+button {
+  width: 100%;
+  padding: 12px;
+  background: #4caf50;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  color: white;
+  cursor: pointer;
+}
+button:hover {
+  background: #46a049;
+}
+a {
+  color: #6ea8ff;
+  cursor: pointer;
+}
+#msg {
+  margin-top: 10px;
+  height: 18px;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+<div class="box">
+  <h2 style="text-align:center;">Create Account</h2>
+
+  <input id="email" type="email" autocomplete="off" placeholder="Email">
+  <input id="password" type="password" autocomplete="new-password" placeholder="Password">
+  <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm Password">
+
+  <button id="signupBtn">Sign Up</button>
+
+  <p style="margin-top:12px;">Already have an account? <a id="goLogin">Login</a></p>
+
+  <p id="msg"></p>
+</div>
+
+<script>
+// -------------------------------
+// SIGNUP BUTTON
+// -------------------------------
+document.getElementById("signupBtn").onclick = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+  const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const msg = document.getElementById("msg");
+
+  msg.style.color = "red";
+  msg.textContent = "";
+
+  if (!email || !password || !confirmPassword) {
+    msg.textContent = "Please fill all fields";
+    return;
+  }
+
+  if (password !== confirmPassword) {
+    msg.textContent = "Passwords do not match";
+    return;
+  }
+
+  if (password.length < 6) {
+    msg.textContent = "Password must be at least 6 characters";
+    return;
+  }
+
+  const result = await window.auth.signup({ email, password });
+
+  if (!result.success) {
+    msg.textContent = result.message;
+    return;
+  }
+
+  msg.style.color = "green";
+  msg.textContent = "Account created! Redirecting to login...";
+
+  setTimeout(() => {
+    window.auth.openLogin();
+  }, 1500);
+};
+
+// -------------------------------
+// GO TO LOGIN PAGE
+// -------------------------------
+document.getElementById("goLogin").onclick = () => {
+  window.auth.openLogin();
+};
+</script>
+
+</body>
+</html>

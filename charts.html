@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Data Charts Dashboard</title>
+
+  <style>
+    body {
+      font-family: "Segoe UI", Arial;
+      background: #eef3f7;
+      padding: 20px;
+      margin: 0;
+      color: #333;
+      transition: 0.3s ease;
+    }
+
+    body.dark {
+      background: #1a1d23;
+      color: #e2e8f0;
+    }
+
+    .header-section {
+      width: 100%;
+      background: #ffffff;
+      padding: 25px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      margin-bottom: 25px;
+      text-align: center;
+    }
+
+    body.dark .header-section {
+      background: #121317;
+      color: #e2e8f0;
+    }
+
+    .title-modern {
+      font-size: 34px;
+      font-weight: 800;
+      color: #2b4c7e;
+    }
+
+    body.dark .title-modern {
+      color: #9cc2ff;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .nav-btn {
+      background: linear-gradient(135deg, #6ea8ff, #4072ee);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(64,114,238,0.3);
+    }
+
+    .nav-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(64,114,238,0.4);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 25px;
+    }
+
+    .chart-card {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+    }
+
+    body.dark .chart-card {
+      background: #1f2126;
+      box-shadow: 0 4px 16px rgba(255,255,255,0.1);
+    }
+
+    .chart-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #2b4c7e;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    body.dark .chart-title {
+      color: #9cc2ff;
+    }
+
+    .chart-container {
+      position: relative;
+      height: 300px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 18px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 25px;
+    }
+
+    .stat-card {
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .blue { background: linear-gradient(135deg, #3498db, #2980b9); }
+    .green { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .red   { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+    .orange{ background: linear-gradient(135deg, #f39c12, #d35400); }
+
+    .stat-value {
+      font-size: 34px;
+      margin: 10px 0;
+    }
+  </style>
+
+  <!-- ChartJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <div class="header-section">
+    <h1 class="title-modern">📊 DATA ANALYTICS DASHBOARD</h1>
+  </div>
+
+  <div class="nav-buttons">
+    <button class="nav-btn" onclick="goBack()">⬅ Back to Data Table</button>
+    <button class="nav-btn" onclick="location.reload()">🔄 Refresh Charts</button>
+  </div>
+
+  <div id="statsGrid" class="stats-grid">
+    <div class="loading">Loading...</div>
+  </div>
+
+  <div class="charts-grid">
+
+    <div class="chart-card">
+      <div class="chart-title">Pass / Fail Ratio</div>
+      <div class="chart-container"><canvas id="passFailChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Production vs Validation</div>
+      <div class="chart-container"><canvas id="modeChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Top 10 Operators</div>
+      <div class="chart-container"><canvas id="operatorChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Daily Tests (Last 30 Days)</div>
+      <div class="chart-container"><canvas id="dailyChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Pass Rate Trend</div>
+      <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-title">Recent 50 Tests Timeline</div>
+      <div class="chart-container"><canvas id="timelineChart"></canvas></div>
+    </div>
+
+  </div>
+
+  <script>
+    let allData = [];
+
+    function goBack() {
+      window.location.href = "index.html";
+    }
+
+    // Load SQL Server data
+    async function loadData() {
+      allData = await window.database.getData();
+      if (!allData || allData.length === 0) {
+        document.getElementById("statsGrid").innerHTML = "<div class='loading'>No Data Found</div>";
+        return;
+      }
+
+      processStats();
+      drawCharts();
+    }
+
+    function processStats() {
+      const total = allData.length;
+      const pass = allData.filter(r => r.Result?.toUpperCase().trim() === "PASS").length;
+      const fail = allData.filter(r => r.Result?.toUpperCase().trim() === "FAIL").length;
+      const rate = total ? ((pass / total) * 100).toFixed(1) : 0;
+
+      document.getElementById("statsGrid").innerHTML = `
+        <div class="stat-card blue">
+          Total Tests
+          <div class="stat-value">${total}</div>
+        </div>
+        <div class="stat-card green">
+          Passed
+          <div class="stat-value">${pass}</div>
+        </div>
+        <div class="stat-card red">
+          Failed
+          <div class="stat-value">${fail}</div>
+        </div>
+        <div class="stat-card orange">
+          Pass Rate
+          <div class="stat-value">${rate}%</div>
+        </div>
+      `;
+    }
+
+    function drawCharts() {
+
+      // Fix Mode Strings
+      allData.forEach(r => {
+        if (r.Mode) {
+          r.Mode = r.Mode.replace("PRODUC ION", "PRODUCTION")
+                         .replace("VALIDA ION", "VALIDATION");
+        }
+      });
+
+      createPassFailChart();
+      createModeChart();
+      createOperatorChart();
+      createDailyChart();
+      createTrendChart();
+      createTimelineChart();
+    }
+
+    function createPassFailChart() {
+      const pass = allData.filter(r => r.Result?.toUpperCase().trim() === "PASS").length;
+      const fail = allData.filter(r => r.Result?.toUpperCase().trim() === "FAIL").length;
+
+      new Chart(document.getElementById("passFailChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["PASS", "FAIL"],
+          datasets: [{
+            data: [pass, fail],
+            backgroundColor: ["#2ecc71", "#e74c3c"]
+          }]
+        }
+      });
+    }
+
+    function createModeChart() {
+      const prod = allData.filter(r => r.Mode === "PRODUCTION").length;
+      const vali = allData.filter(r => r.Mode === "VALIDATION").length;
+
+      new Chart(document.getElementById("modeChart"), {
+        type: "bar",
+        data: {
+          labels: ["Production", "Validation"],
+          datasets: [{
+            data: [prod, vali],
+            backgroundColor: ["#3498db", "#9b59b6"]
+          }]
+        },
+        options: { scales: { y: { beginAtZero: true } } }
+      });
+    }
+
+    function createOperatorChart() {
+      const ops = {};
+      allData.forEach(r => {
+        let id = r.OperatorID || "Unknown";
+        ops[id] = (ops[id] || 0) + 1;
+      });
+
+      const sorted = Object.entries(ops).sort((a,b)=>b[1]-a[1]).slice(0,10);
+
+      new Chart(document.getElementById("operatorChart"), {
+        type: "bar",
+        data: {
+          labels: sorted.map(s => s[0]),
+          datasets: [{
+            data: sorted.map(s => s[1]),
+            backgroundColor: "#667eea"
+          }]
+        },
+        options: {
+          indexAxis: "y",
+          scales: { x: { beginAtZero: true } }
+        }
+      });
+    }
+
+    function createDailyChart() {
+      const map = {};
+      const now = new Date();
+      const limit = new Date(now - 30*24*60*60*1000);
+
+      allData.forEach(r => {
+        const d = new Date(r.DateandTime);
+        if (d >= limit) {
+          const key = d.toISOString().split("T")[0];
+          map[key] = (map[key] || 0) + 1;
+        }
+      });
+
+      const days = Object.keys(map).sort();
+
+      new Chart(document.getElementById("dailyChart"), {
+        type: "line",
+        data: {
+          labels: days,
+          datasets: [{
+            data: days.map(k => map[k]),
+            borderColor: "#3498db",
+            backgroundColor: "rgba(52,152,219,0.15)",
+            fill: true,
+            tension: 0.3
+          }]
+        }
+      });
+    }
+
+    function createTrendChart() {
+      const map = {};
+      const now = new Date();
+      const limit = new Date(now - 30*24*60*60*1000);
+
+      allData.forEach(r => {
+        const d = new Date(r.DateandTime);
+        if (d >= limit) {
+          const key = d.toISOString().split("T")[0];
+          map[key] = map[key] || {pass:0,total:0};
+          map[key].total++;
+          if (r.Result?.toUpperCase().trim()==="PASS") map[key].pass++;
+        }
+      });
+
+      const days = Object.keys(map).sort();
+      const values = days.map(d => ((map[d].pass/map[d].total)*100).toFixed(1));
+
+      new Chart(document.getElementById("trendChart"), {
+        type: "line",
+        data: {
+          labels: days,
+          datasets: [{
+            data: values,
+            borderColor: "#2ecc71",
+            backgroundColor: "rgba(46,204,113,0.15)",
+            fill: true,
+            tension: 0.3
+          }]
+        }
+      });
+    }
+
+    function createTimelineChart() {
+      const last = allData.slice(-50);
+
+      new Chart(document.getElementById("timelineChart"), {
+        type: "bar",
+        data: {
+          labels: last.map((_,i)=>"Test "+(i+1)),
+          datasets: [
+            {
+              label: "PASS",
+              data: last.map(r => r.Result?.toUpperCase().trim()==="PASS" ? 1 : 0),
+              backgroundColor: "#2ecc71"
+            },
+            {
+              label: "FAIL",
+              data: last.map(r => r.Result?.toUpperCase().trim()==="FAIL" ? 1 : 0),
+              backgroundColor: "#e74c3c"
+            }
+          ]
+        },
+        options: {
+          scales: {
+            y: { beginAtZero: true, max: 1, ticks: { stepSize: 1 } }
+          }
+        }
+      });
+    }
+
+    loadData();
+  </script>
+
+</body>
+</html>
