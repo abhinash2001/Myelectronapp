@@ -197,7 +197,9 @@
 
     // Load SQL Server data
     async function loadData() {
-      allData = await window.database.getData();
+      
+allData = await window.database.getLastMonthData();
+
       if (!allData || allData.length === 0) {
         document.getElementById("statsGrid").innerHTML = "<div class='loading'>No Data Found</div>";
         return;

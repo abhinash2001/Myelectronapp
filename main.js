@@ -274,6 +274,7 @@ ipcMain.handle("get-current-user", async () => {
   return currentUserEmail;
 });
 
+// ⭐⭐⭐ START: NEW CODE - ADD FROM HERE ⭐⭐⭐
 // ================================
 // SQL SERVER CONNECTION
 // ================================
@@ -281,29 +282,124 @@ const connectionString =
   "server=Abhinash\\SQLEXPRESS;Database=MLTesting;Trusted_Connection=Yes;Driver={ODBC Driver 17 for SQL Server}";
 
 // ================================
-// GET ALL DATA (FOR DATA TABLE)
+// GET LIST OF TABLES
 // ================================
-ipcMain.handle("get-sql-data", () => {
+ipcMain.handle("get-tables-list", () => {
   return new Promise((resolve) => {
-    sql.query(connectionString, "SELECT * FROM BathData ORDER BY DateandTime DESC", (err, rows) => {
+    const query = `
+      SELECT TABLE_NAME 
+      FROM INFORMATION_SCHEMA.TABLES 
+      WHERE TABLE_TYPE = 'BASE TABLE' 
+      AND TABLE_CATALOG = 'MLTesting'
+      ORDER BY TABLE_NAME
+    `;
+    
+    sql.query(connectionString, query, (err, rows) => {
       if (err) {
-        console.error("SQL Server error:", err);
+        console.error("Error fetching tables:", err);
         resolve([]);
       } else {
-        console.log("All data fetched:", rows.length, "records");
-        resolve(rows);
+        const tables = rows.map(row => row.TABLE_NAME);
+        console.log("Tables found:", tables);
+        resolve(tables);
       }
     });
   });
 });
 
 // ================================
-// GET LAST 30 DAYS DATA (FOR CHARTS)
+// GET PAGINATED DATA FROM SELECTED TABLE
 // ================================
-ipcMain.handle("get-last-month-data", () => {
+ipcMain.handle("get-paginated-data", (event, { page = 1, limit = 20, filters = {}, tableName = 'BathData' }) => {
+  return new Promise((resolve) => {
+    const offset = (page - 1) * limit;
+    let query = `SELECT * FROM ${tableName} WHERE 1=1`;
+    let countQuery = `SELECT COUNT(*) as total FROM ${tableName} WHERE 1=1`;
+    const params = [];
+
+    // Apply date filter
+    if (filters.dateFrom) {
+      query += " AND DateandTime >= ?";
+      countQuery += " AND DateandTime >= ?";
+      params.push(filters.dateFrom);
+    }
+
+    // Apply mode filter
+    if (filters.mode) {
+      query += " AND Mode LIKE ?";
+      countQuery += " AND Mode LIKE ?";
+      params.push(`%${filters.mode}%`);
+    }
+
+    query += ` ORDER BY DateandTime DESC OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY`;
+
+    // Get total count first
+    sql.query(connectionString, countQuery, params, (err, countResult) => {
+      if (err) {
+        console.error("Count error:", err);
+        return resolve({ data: [], total: 0 });
+      }
+
+      const total = countResult[0].total;
+
+      // Get paginated data
+      sql.query(connectionString, query, params, (err2, rows) => {
+        if (err2) {
+          console.error("Data error:", err2);
+          return resolve({ data: [], total: 0 });
+        }
+
+        console.log(`Table: ${tableName}, Page ${page} fetched: ${rows.length} records of ${total} total`);
+        resolve({ data: rows, total: total });
+      });
+    });
+  });
+});
+
+// ================================
+// GET STATISTICS
+// ================================
+ipcMain.handle("get-statistics", (event, { filters = {}, tableName = 'BathData' }) => {
+  return new Promise((resolve) => {
+    let query = `
+      SELECT 
+        COUNT(*) as totalTests,
+        SUM(CASE WHEN Result LIKE '%PASS%' THEN 1 ELSE 0 END) as passCount,
+        SUM(CASE WHEN Result LIKE '%FAIL%' THEN 1 ELSE 0 END) as failCount
+      FROM ${tableName} WHERE 1=1
+    `;
+    const params = [];
+
+    if (filters.dateFrom) {
+      query += " AND DateandTime >= ?";
+      params.push(filters.dateFrom);
+    }
+
+    if (filters.mode) {
+      query += " AND Mode LIKE ?";
+      params.push(`%${filters.mode}%`);
+    }
+
+    sql.query(connectionString, query, params, (err, rows) => {
+      if (err) {
+        console.error("Statistics error:", err);
+        resolve({ totalTests: 0, passCount: 0, failCount: 0 });
+      } else {
+        const stats = rows[0];
+        console.log("Statistics:", stats);
+        resolve(stats);
+      }
+    });
+  });
+});
+
+// ================================
+// GET LAST 30 DAYS (FOR CHARTS)
+// ================================
+ipcMain.handle("get-last-month-data", (event, { tableName = 'BathData' } = {}) => {
   return new Promise((resolve) => {
     const query = `
-      SELECT * FROM BathData 
+      SELECT TOP 1000 * FROM ${tableName}
       WHERE DateandTime >= DATEADD(day, -30, GETDATE())
       ORDER BY DateandTime DESC
     `;
@@ -313,12 +409,13 @@ ipcMain.handle("get-last-month-data", () => {
         console.error("SQL Server error:", err);
         resolve([]);
       } else {
-        console.log("Last 30 days data fetched:", rows.length, "records");
+        console.log(`Last 30 days data from ${tableName}:`, rows.length, "records");
         resolve(rows);
       }
     });
   });
 });
+// ⭐⭐⭐ END: NEW CODE - STOPS HERE ⭐⭐⭐
 
 // ================================
 // EXPORT PDF
@@ -351,7 +448,7 @@ ipcMain.on("export-excel", async () => {
   if (!win) return;
 
   try {
-    const data = await win.webContents.executeJavaScript("allData");
+    const data = await win.webContents.executeJavaScript("pageData");
 
     const filePath = dialog.showSaveDialogSync(win, {
       defaultPath: "Report.xlsx",
@@ -385,7 +482,7 @@ ipcMain.on("export-word", async () => {
   if (!win) return;
 
   try {
-    const data = await win.webContents.executeJavaScript("allData");
+    const data = await win.webContents.executeJavaScript("pageData");
 
     const filePath = dialog.showSaveDialogSync(win, {
       defaultPath: "Report.docx",

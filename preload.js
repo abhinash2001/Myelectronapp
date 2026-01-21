@@ -4,8 +4,10 @@ const { contextBridge, ipcRenderer } = require("electron");
 
 // ------------------ DATABASE ------------------
 contextBridge.exposeInMainWorld("database", {
-  getData: () => ipcRenderer.invoke("get-sql-data"),
-  getLastMonthData: () => ipcRenderer.invoke("get-last-month-data")
+  getTablesList: () => ipcRenderer.invoke("get-tables-list"),
+  getPaginatedData: (params) => ipcRenderer.invoke("get-paginated-data", params),
+  getStatistics: (params) => ipcRenderer.invoke("get-statistics", params),
+  getLastMonthData: (params) => ipcRenderer.invoke("get-last-month-data", params)
 });
 
 // ------------------ EXPORT ------------------

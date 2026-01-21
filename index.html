@@ -106,6 +106,101 @@
     }
 
     /* ---------------------------
+       TABLE SELECTOR
+    ---------------------------- */
+    .table-selector {
+      background: rgba(255,255,255,0.9);
+      padding: 15px 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    body.dark .table-selector {
+      background: rgba(30, 32, 38, 0.9);
+    }
+
+    .table-selector label {
+      font-weight: 700;
+      color: #2b4c7e;
+      font-size: 16px;
+    }
+
+    body.dark .table-selector label {
+      color: #9cc2ff;
+    }
+
+    .table-selector select {
+      padding: 10px 15px;
+      border-radius: 8px;
+      border: 2px solid #2b4c7e;
+      background: #f5f7fb;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      min-width: 200px;
+      transition: 0.3s;
+    }
+
+    body.dark .table-selector select {
+      background: #1f2126;
+      border-color: #9cc2ff;
+      color: #e2e8f0;
+    }
+
+    .table-selector select:hover {
+      border-color: #4072ee;
+      box-shadow: 0 0 10px rgba(64,114,238,0.2);
+    }
+
+    /* ---------------------------
+       STATISTICS CARDS
+    ---------------------------- */
+    .stats-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      border-radius: 12px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(102,126,234,0.3);
+    }
+
+    .stat-card.total {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    }
+
+    .stat-card.pass {
+      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    }
+
+    .stat-card.fail {
+      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    }
+
+    .stat-value {
+      font-size: 36px;
+      font-weight: 800;
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      font-size: 14px;
+      opacity: 0.9;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* ---------------------------
        EXPORT BUTTON
     ---------------------------- */
     .export-container {
@@ -190,11 +285,21 @@
       flex-wrap: wrap;
       margin-bottom: 20px;
       box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
+      align-items: center;
     }
 
     body.dark .filter-box {
       background: rgba(30, 32, 38, 0.75);
       border-color: rgba(255,255,255,0.1);
+    }
+
+    .filter-box label {
+      font-weight: 600;
+      color: #2b4c7e;
+    }
+
+    body.dark .filter-box label {
+      color: #9cc2ff;
     }
 
     .filter-box input,
@@ -311,6 +416,12 @@
       border-radius: 6px;
       border: none;
       cursor: pointer;
+      margin: 0 5px;
+    }
+
+    #pagination button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
     }
   </style>
 </head>
@@ -330,6 +441,30 @@
     </div>
   </div>
 
+  <!-- TABLE SELECTOR -->
+  <div class="table-selector">
+    <label>📊 Select Table:</label>
+    <select id="tableSelector">
+      <option value="">Loading tables...</option>
+    </select>
+  </div>
+
+  <!-- STATISTICS CARDS -->
+  <div class="stats-container">
+    <div class="stat-card total">
+      <div class="stat-label">Total Tests</div>
+      <div class="stat-value" id="totalTests">0</div>
+    </div>
+    <div class="stat-card pass">
+      <div class="stat-label">Pass</div>
+      <div class="stat-value" id="passCount">0</div>
+    </div>
+    <div class="stat-card fail">
+      <div class="stat-label">Fail</div>
+      <div class="stat-value" id="failCount">0</div>
+    </div>
+  </div>
+
   <!-- EXPORT BUTTON -->
   <div class="export-container">
     <button id="exportMainBtn" class="export-btn">Export ▼</button>
@@ -345,16 +480,15 @@
 
   <!-- FILTER BOX -->
   <div class="filter-box">
+    <label>From Date:</label>
     <input type="date" id="dateFrom" />
-    <input type="date" id="dateTo" />
 
+    <label>Mode:</label>
     <select id="modeFilter">
       <option value="">All Modes</option>
       <option value="PRODUCTION">Production</option>
       <option value="VALIDATION">Validation</option>
     </select>
-
-    <input type="text" id="operatorFilter" placeholder="Operator ID" />
 
     <button onclick="applyFilters()">Apply</button>
     <button onclick="resetFilters()">Reset</button>
@@ -365,10 +499,12 @@
   <div id="pagination"></div>
 
   <script>
-    let allData = [];
-    let filteredData = [];
     let currentPage = 1;
+    let totalRecords = 0;
+    let currentFilters = {};
+    let selectedTable = 'BathData';
     const rowsPerPage = 20;
+    let pageData = [];
 
     function cleanDateTime(v) {
       const d = new Date(v);
@@ -398,14 +534,71 @@
       }
     });
 
-    // LOAD DATA
-    async function loadData() {
+    // LOAD TABLES LIST
+    async function loadTables() {
       try {
-        allData = await window.database.getData();
-        console.log("Data loaded:", allData.length, "records");
+        const tables = await window.database.getTablesList();
+        const selector = document.getElementById("tableSelector");
+        
+        selector.innerHTML = tables.map(table => 
+          `<option value="${table}">${table}</option>`
+        ).join('');
+
+        // Set default table
+        selectedTable = tables[0] || 'BathData';
+        loadData(1, {});
+      } catch (error) {
+        console.error("Error loading tables:", error);
+      }
+    }
+
+    // TABLE SELECTOR CHANGE
+    document.getElementById("tableSelector").addEventListener("change", (e) => {
+      selectedTable = e.target.value;
+      resetFilters();
+    });
+
+    // LOAD STATISTICS
+    async function loadStatistics(filters = {}) {
+      try {
+        const stats = await window.database.getStatistics({
+          filters: filters,
+          tableName: selectedTable
+        });
+
+        document.getElementById("totalTests").textContent = stats.totalTests || 0;
+        document.getElementById("passCount").textContent = stats.passCount || 0;
+        document.getElementById("failCount").textContent = stats.failCount || 0;
+      } catch (error) {
+        console.error("Error loading statistics:", error);
+      }
+    }
+
+    // LOAD PAGINATED DATA
+    async function loadData(page = 1, filters = {}) {
+      try {
+        currentPage = page;
+        currentFilters = filters;
+
+        // Show loading
+        document.getElementById("dataTable").innerHTML = "<tr><td colspan='100'>Loading...</td></tr>";
+
+        const result = await window.database.getPaginatedData({
+          page: page,
+          limit: rowsPerPage,
+          filters: filters,
+          tableName: selectedTable
+        });
+
+        pageData = result.data;
+        totalRecords = result.total;
+
+        console.log(`Page ${page} loaded: ${pageData.length} records of ${totalRecords} total`);
         renderTable();
+        loadStatistics(filters);
       } catch (error) {
         console.error("Error loading data:", error);
+        document.getElementById("dataTable").innerHTML = "<tr><td>Error loading data</td></tr>";
       }
     }
 
@@ -414,21 +607,18 @@
       const table = document.getElementById("dataTable");
       const pagination = document.getElementById("pagination");
 
-      let data = filteredData.length ? filteredData : allData;
-      let start = (currentPage - 1) * rowsPerPage;
-      let pageSlice = data.slice(start, start + rowsPerPage);
-
-      if (!pageSlice.length) {
+      if (!pageData.length) {
         table.innerHTML = "<tr><td>No Data</td></tr>";
+        pagination.innerHTML = "";
         return;
       }
 
       let header = "<tr>";
-      for (let k in pageSlice[0]) header += `<th>${k}</th>`;
+      for (let k in pageData[0]) header += `<th>${k}</th>`;
       header += "</tr>";
 
       let rows = "";
-      pageSlice.forEach(row => {
+      pageData.forEach(row => {
         rows += "<tr>";
 
         for (let key in row) {
@@ -459,56 +649,46 @@
 
       table.innerHTML = header + rows;
 
-      const total = Math.ceil(data.length / rowsPerPage);
+      const totalPages = Math.ceil(totalRecords / rowsPerPage);
+      const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+      const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+
       pagination.innerHTML = `
-        <button onclick="changePage(-1)">Previous</button>
-        Page ${currentPage} of ${total}
-        <button onclick="changePage(1)">Next</button>
+        <button onclick="changePage(-1)" ${prevDisabled}>Previous</button>
+        <span style="margin: 0 15px; font-weight: 600;">
+          Page ${currentPage} of ${totalPages}
+        </span>
+        <button onclick="changePage(1)" ${nextDisabled}>Next</button>
       `;
     }
 
     function changePage(direction) {
-      const data = filteredData.length ? filteredData : allData;
-      const total = Math.ceil(data.length / rowsPerPage);
-
-      if (direction === 1 && currentPage < total) currentPage++;
-      if (direction === -1 && currentPage > 1) currentPage--;
-      renderTable();
+      const totalPages = Math.ceil(totalRecords / rowsPerPage);
+      
+      if (direction === 1 && currentPage < totalPages) {
+        loadData(currentPage + 1, currentFilters);
+      }
+      if (direction === -1 && currentPage > 1) {
+        loadData(currentPage - 1, currentFilters);
+      }
     }
 
     // FILTERS
     function applyFilters() {
       const df = document.getElementById("dateFrom").value;
-      const dt = document.getElementById("dateTo").value;
       const mode = document.getElementById("modeFilter").value;
-      const op = document.getElementById("operatorFilter").value.toUpperCase();
 
-      filteredData = allData.filter(row => {
-        let ok = true;
+      const filters = {};
+      if (df) filters.dateFrom = df;
+      if (mode) filters.mode = mode;
 
-        if (df) ok = ok && new Date(row.DateandTime) >= new Date(df);
-        if (dt) ok = ok && new Date(row.DateandTime) <= new Date(dt);
-
-        let cleanMode = row.Mode.replace("PRODUC ION","PRODUCTION").replace("VALIDA ION","VALIDATION");
-        if (mode) ok = ok && cleanMode === mode;
-
-        if (op) ok = ok && row.OperatorID?.toUpperCase().includes(op);
-
-        return ok;
-      });
-
-      currentPage = 1;
-      renderTable();
+      loadData(1, filters);
     }
 
     function resetFilters() {
-      filteredData = [];
       document.getElementById("dateFrom").value = "";
-      document.getElementById("dateTo").value = "";
       document.getElementById("modeFilter").value = "";
-      document.getElementById("operatorFilter").value = "";
-      currentPage = 1;
-      renderTable();
+      loadData(1, {});
     }
 
     // EXPORT MENU
@@ -529,7 +709,8 @@
       window.location.href = 'charts.html';
     }
 
-    loadData();
+    // Initial load
+    loadTables();
   </script>
 </body>
 </html>
