@@ -8,6 +8,50 @@ const { Document, Packer, Paragraph, Table, TableRow, TableCell } = require("doc
 const bcrypt = require("bcryptjs");
 
 // ================================
+// DATABASE SETTINGS CONFIG
+// ================================
+
+
+const configPath = path.join(app.getPath("userData"), "config.json");
+
+// Load or create config.json
+function loadDBConfig() {
+  if (!fs.existsSync(configPath)) {
+    const defaultConfig = {
+      server: "", // Put your default server here
+      database: "", // Put your default database here
+      auth: "",
+      user: "",
+      password: ""
+    };
+    fs.writeFileSync(configPath, JSON.stringify(defaultConfig, null, 2));
+    return defaultConfig;
+  }
+  return JSON.parse(fs.readFileSync(configPath));
+}
+
+function saveDBConfig(newConfig) {
+  fs.writeFileSync(configPath, JSON.stringify(newConfig, null, 2));
+}
+
+let dbConfig = loadDBConfig();
+
+
+// Dynamic SQL connection string builder
+function getConnectionString() {
+  // Escape database name if it has spaces
+  const escapedDB = dbConfig.database.includes(' ') 
+    ? `[${dbConfig.database}]` 
+    : dbConfig.database;
+
+  if (dbConfig.auth === "windows") {
+    return `Driver={ODBC Driver 17 for SQL Server};Server=${dbConfig.server};Database=${escapedDB};Trusted_Connection=Yes;`;
+  } else {
+    return `Driver={ODBC Driver 17 for SQL Server};Server=${dbConfig.server};Database=${escapedDB};UID=${dbConfig.user};PWD=${dbConfig.password};`;
+  }
+}
+
+// ================================
 // SQLITE DATABASE
 // ================================
 const dbPath = path.join(app.getPath("userData"), "users.db");
@@ -91,6 +135,23 @@ function createSignupWindow() {
     signupWin = null;
   });
 }
+
+function createDBSettingsWindow() {
+  const win = new BrowserWindow({
+    width: 500,
+    height: 650,
+    resizable: false,
+    fullscreenable: false,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  win.loadFile("db-settings.html");
+}
+
 
 function createMainWindow() {
   mainWin = new BrowserWindow({
@@ -246,12 +307,29 @@ ipcMain.on("open-login", () => {
 // ================================
 // AFTER LOGIN SUCCESS
 // ================================
+// ================================
+// AFTER LOGIN SUCCESS
+// ================================
 ipcMain.on("login-success", () => {
   if (loginWin) loginWin.close();
   if (signupWin) signupWin.close();
+  
+  // Check if database is configured
+  if (!dbConfig.server || !dbConfig.database) {
+    dialog.showMessageBox({
+      type: 'warning',
+      title: 'Database Not Configured',
+      message: 'Please configure your database connection in Settings.',
+      buttons: ['Open Settings', 'Skip']
+    }).then(result => {
+      if (result.response === 0) {
+        createDBSettingsWindow();
+      }
+    });
+  }
+  
   createMainWindow();
 });
-
 // ================================
 // LOGOUT HANDLER
 // ================================
@@ -267,6 +345,18 @@ ipcMain.on("logout", () => {
   createLoginWindow();
 });
 
+ipcMain.on("open-db-settings", () => {
+  createDBSettingsWindow();
+});
+
+
+
+
+
+ipcMain.handle("get-db-config", () => dbConfig);
+
+
+
 // ================================
 // GET CURRENT USER
 // ================================
@@ -278,19 +368,28 @@ ipcMain.handle("get-current-user", async () => {
 // ================================
 // SQL SERVER CONNECTION
 // ================================
-const connectionString =
-  "server=Abhinash\\SQLEXPRESS;Database=MLTesting;Trusted_Connection=Yes;Driver={ODBC Driver 17 for SQL Server}";
+let connectionString = getConnectionString();
 
+
+// ================================
+// GET LIST OF TABLES
+// ================================
 // ================================
 // GET LIST OF TABLES
 // ================================
 ipcMain.handle("get-tables-list", () => {
   return new Promise((resolve) => {
+    // Check if database is configured
+    if (!dbConfig.server || !dbConfig.database) {
+      console.error("Database not configured");
+      return resolve([]);
+    }
+
     const query = `
       SELECT TABLE_NAME 
       FROM INFORMATION_SCHEMA.TABLES 
       WHERE TABLE_TYPE = 'BASE TABLE' 
-      AND TABLE_CATALOG = 'MLTesting'
+      AND TABLE_CATALOG = '${dbConfig.database}'
       ORDER BY TABLE_NAME
     `;
     
@@ -306,6 +405,84 @@ ipcMain.handle("get-tables-list", () => {
     });
   });
 });
+
+// ================================
+// DB SETTINGS IPC HANDLERS
+// ================================
+
+// Get current DB configuration
+ipcMain.handle("db-get-config", () => {
+  return dbConfig;
+});
+
+// Save new DB configuration
+ipcMain.handle("db-save-config", (event, newConfig) => {
+  dbConfig = newConfig;
+  saveDBConfig(newConfig);
+  connectionString = getConnectionString();
+  return { success: true };
+});
+
+// Test connection before saving
+ipcMain.handle("db-test-connection", async (event, testConfig) => {
+  return new Promise((resolve) => {
+    let testConn;
+
+    if (testConfig.auth === "windows") {
+      testConn = `server=${testConfig.server};Database=${testConfig.database};Trusted_Connection=Yes;Driver={ODBC Driver 17 for SQL Server}`;
+    } else {
+      testConn = `server=${testConfig.server};Database=${testConfig.database};UID=${testConfig.user};PWD=${testConfig.password};Driver={ODBC Driver 17 for SQL Server}`;
+    }
+
+    sql.query(testConn, "SELECT 1 AS ok", (err, rows) => {
+      if (err) {
+        resolve({ success: false, message: err.message });
+      } else {
+        resolve({ success: true });
+      }
+    });
+  });
+});
+// DELETE THE CONNECTION ON LOGOUT
+
+
+ipcMain.on("db-logout", () => {
+  try {
+    const emptyConfig = {
+      server: "",
+      database: "",
+      auth: "windows",
+      user: "",
+      password: ""
+    };
+
+    // Save empty config to file
+    fs.writeFileSync(
+      path.join(app.getPath("userData"), "dbConfig.json"),
+      JSON.stringify(emptyConfig, null, 2)
+    );
+
+    // ❗ IMPORTANT: RESET IN-MEMORY CONFIG TOO
+    dbConfig = emptyConfig;
+
+    console.log("Logged out: DB config cleared.");
+
+    // Close DB settings window
+    if (BrowserWindow.getFocusedWindow()) {
+      BrowserWindow.getFocusedWindow().close();
+    }
+
+    // Reload main window so it does NOT load old data
+    if (mainWin) {
+      mainWin.webContents.send("db-logged-out");
+      mainWin.reload();
+    }
+
+  } catch (err) {
+    console.error("Logout error:", err);
+  }
+});
+
 
 // ================================
 // GET PAGINATED DATA FROM SELECTED TABLE
@@ -399,7 +576,7 @@ ipcMain.handle("get-statistics", (event, { filters = {}, tableName = 'BathData' 
 ipcMain.handle("get-last-month-data", (event, { tableName = 'BathData' } = {}) => {
   return new Promise((resolve) => {
     const query = `
-      SELECT TOP 1000 * FROM ${tableName}
+      SELECT *   FROM ${tableName}
       WHERE DateandTime >= DATEADD(day, -30, GETDATE())
       ORDER BY DateandTime DESC
     `;
@@ -517,3 +694,4 @@ ipcMain.on("export-word", async () => {
     console.error("Word export error:", error);
   }
 });
+

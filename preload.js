@@ -7,7 +7,18 @@ contextBridge.exposeInMainWorld("database", {
   getTablesList: () => ipcRenderer.invoke("get-tables-list"),
   getPaginatedData: (params) => ipcRenderer.invoke("get-paginated-data", params),
   getStatistics: (params) => ipcRenderer.invoke("get-statistics", params),
-  getLastMonthData: (params) => ipcRenderer.invoke("get-last-month-data", params)
+  getLastMonthData: (params) => ipcRenderer.invoke("get-last-month-data", params),
+  getDBConfig: () => ipcRenderer.invoke("db-get-config"),
+  saveDBConfig: (config) => ipcRenderer.invoke("db-save-config", config),
+  testDBConnection: (config) => ipcRenderer.invoke("db-test-connection", config),
+  openDBSettings: () => ipcRenderer.send("open-db-settings"),
+  getCurrentDBConfig: () => ipcRenderer.invoke("get-db-config"),
+
+
+  
+
+
+
 });
 
 // ------------------ EXPORT ------------------
@@ -26,6 +37,14 @@ contextBridge.exposeInMainWorld("auth", {
   openLogin: () => ipcRenderer.send("open-login"),
   logout: () => ipcRenderer.send("logout"),
   getCurrentUser: () => ipcRenderer.invoke("get-current-user")
+  
 });
 
 console.log("All APIs exposed successfully!");
+
+ipcRenderer.on("db-logged-out", () => {
+  console.log("Database logged out signal received.");
+});
+
+
+

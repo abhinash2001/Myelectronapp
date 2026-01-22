@@ -432,6 +432,23 @@
   <div class="header-section">
     <h1 class="title-modern">ML TESTING LINE</h1>
 
+    <button onclick="openDBSettings()" 
+style="
+  position:absolute;
+  top:25px;
+  right:25px;
+  background:#4072ee;
+  color:white;
+  padding:10px 16px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-weight:600;
+">
+  ⚙️ Settings
+</button>
+
+
     <div class="theme-toggle">
       <span id="themeLabel">🌞 Light Mode</span>
       <label class="switch">
@@ -511,6 +528,15 @@
       if (isNaN(d)) return v;
       return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
     }
+
+    window.database.getCurrentDBConfig().then(config => {
+  if (!config.server || !config.database) {
+    document.getElementById("dataTable").innerHTML =
+      "<tr><td style='padding:20px;font-size:16px;color:red;'>❌ No database connected. Open DB Settings to connect.</td></tr>";
+    return;
+  }
+});
+
 
     // THEME INIT
     const themeSwitch = document.getElementById("themeSwitch");
@@ -708,6 +734,11 @@
     function goToCharts() {
       window.location.href = 'charts.html';
     }
+    
+    function openDBSettings() {
+  window.database.openDBSettings();
+}
+
 
     // Initial load
     loadTables();

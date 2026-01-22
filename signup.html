@@ -61,6 +61,14 @@ a {
   <input id="password" type="password" autocomplete="new-password" placeholder="Password">
   <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm Password">
 
+  <label style="font-size: 12px; color: #aaa;">Select Access Level:</label>
+<select id="role" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #444; background: #222; color: white;">
+  <option value="Operator">Operator</option>
+  <option value="Supervisor">Supervisor</option>
+  <option value="Maintenance">Maintenance</option>
+  <option value="Developer">Developer</option>
+</select>
+
   <button id="signupBtn">Sign Up</button>
 
   <p style="margin-top:12px;">Already have an account? <a id="goLogin">Login</a></p>
@@ -72,10 +80,12 @@ a {
 // -------------------------------
 // SIGNUP BUTTON
 // -------------------------------
+// Change the first line of the click handler:
 document.getElementById("signupBtn").onclick = async () => {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value.trim();
   const confirmPassword = document.getElementById("confirmPassword").value.trim();
+  const role = document.getElementById("role").value;
   const msg = document.getElementById("msg");
 
   msg.style.color = "red";
