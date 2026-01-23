@@ -3,17 +3,7 @@
 <head>
   <style>
 
-    /* ---------------------------
-       BASE LIGHT MODE
-    ---------------------------- */
-    body {
-      font-family: "Segoe UI", Arial;
-      background: #eef3f7;
-      padding: 20px;
-      margin: 0;
-      color: #333;
-      transition: 0.3s ease;
-    }
+    
 
     /* ---------------------------
        HEADER SECTION
@@ -49,61 +39,6 @@
       text-shadow: 0 0 12px rgba(156,194,255,0.5);
     }
 
-    /* ---------------------------
-       THEME TOGGLE
-    ---------------------------- */
-    .theme-toggle {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 12px;
-      font-size: 16px;
-      font-weight: bold;
-    }
-
-    .switch {
-      position: relative;
-      width: 62px;
-      height: 32px;
-    }
-
-    .switch input {
-      opacity: 0;
-    }
-
-    .slider {
-      position: absolute;
-      inset: 0;
-      background: #b5b5b5;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: 0.4s;
-    }
-
-    .slider:before {
-      content: "🌞";
-      position: absolute;
-      height: 26px;
-      width: 26px;
-      background: white;
-      border-radius: 50%;
-      left: 3px;
-      bottom: 3px;
-      transition: 0.4s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    input:checked + .slider {
-      background-color: #4caf50;
-      box-shadow: 0 0 10px #4caf50;
-    }
-
-    input:checked + .slider:before {
-      transform: translateX(30px) rotate(360deg);
-      content: "🌙";
-    }
 
     /* ---------------------------
        TABLE SELECTOR
@@ -449,13 +384,7 @@ style="
 </button>
 
 
-    <div class="theme-toggle">
-      <span id="themeLabel">🌞 Light Mode</span>
-      <label class="switch">
-        <input type="checkbox" id="themeSwitch" />
-        <span class="slider"></span>
-      </label>
-    </div>
+    
   </div>
 
   <!-- TABLE SELECTOR -->
@@ -516,232 +445,243 @@ style="
   <div id="pagination"></div>
 
   <script>
-    let currentPage = 1;
-    let totalRecords = 0;
-    let currentFilters = {};
-    let selectedTable = 'BathData';
-    const rowsPerPage = 20;
-    let pageData = [];
+let currentPage = 1;
+let totalRecords = 0;
+let currentFilters = {};
+let selectedTable = null;
+const rowsPerPage = 20;
+let pageData = [];
 
-    function cleanDateTime(v) {
-      const d = new Date(v);
-      if (isNaN(d)) return v;
-      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
-    }
+// Format Date-Time
+function cleanDateTime(v) {
+  const d = new Date(v);
+  if (isNaN(d)) return v;
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+}
 
-    window.database.getCurrentDBConfig().then(config => {
+// -------------------------
+// 🚫 DO NOT load anything until DB exists
+// -------------------------
+window.database.getDBConfig().then(async config => {
   if (!config.server || !config.database) {
     document.getElementById("dataTable").innerHTML =
-      "<tr><td style='padding:20px;font-size:16px;color:red;'>❌ No database connected. Open DB Settings to connect.</td></tr>";
-    return;
+      "<tr><td style='padding:20px;font-size:16px;color:red;'>❌ No database connected. Click Settings to configure.</td></tr>";
+    document.getElementById("tableSelector").innerHTML =
+      "<option value=''>No tables</option>";
+    return; // STOP — DO NOT LOAD ANY TABLES
   }
+
+  // DB is configured → Load tables list
+  await loadTables();
 });
 
 
-    // THEME INIT
-    const themeSwitch = document.getElementById("themeSwitch");
-    const themeLabel = document.getElementById("themeLabel");
+// -------------------------
+//  TABLES LIST
+// -------------------------
+async function loadTables() {
+  const tables = await window.database.getTablesList();
+  const selector = document.getElementById("tableSelector");
 
-    if (localStorage.getItem("theme") === "dark") {
-      document.body.classList.add("dark");
-      themeSwitch.checked = true;
-      themeLabel.textContent = "🌙 Dark Mode";
-    }
+  if (!tables || tables.length === 0) {
+    selector.innerHTML = "<option>No tables found</option>";
+    return;
+  }
 
-    themeSwitch.addEventListener("change", () => {
-      if (themeSwitch.checked) {
-        document.body.classList.add("dark");
-        themeLabel.textContent = "🌙 Dark Mode";
-        localStorage.setItem("theme", "dark");
-      } else {
-        document.body.classList.remove("dark");
-        themeLabel.textContent = "🌞 Light Mode";
-        localStorage.setItem("theme", "light");
-      }
-    });
+  selector.innerHTML = tables.map(t => `<option value="${t}">${t}</option>`).join('');
 
-    // LOAD TABLES LIST
-    async function loadTables() {
-      try {
-        const tables = await window.database.getTablesList();
-        const selector = document.getElementById("tableSelector");
-        
-        selector.innerHTML = tables.map(table => 
-          `<option value="${table}">${table}</option>`
-        ).join('');
+  selectedTable = tables[0];
 
-        // Set default table
-        selectedTable = tables[0] || 'BathData';
-        loadData(1, {});
-      } catch (error) {
-        console.error("Error loading tables:", error);
-      }
-    }
-
-    // TABLE SELECTOR CHANGE
-    document.getElementById("tableSelector").addEventListener("change", (e) => {
-      selectedTable = e.target.value;
-      resetFilters();
-    });
-
-    // LOAD STATISTICS
-    async function loadStatistics(filters = {}) {
-      try {
-        const stats = await window.database.getStatistics({
-          filters: filters,
-          tableName: selectedTable
-        });
-
-        document.getElementById("totalTests").textContent = stats.totalTests || 0;
-        document.getElementById("passCount").textContent = stats.passCount || 0;
-        document.getElementById("failCount").textContent = stats.failCount || 0;
-      } catch (error) {
-        console.error("Error loading statistics:", error);
-      }
-    }
-
-    // LOAD PAGINATED DATA
-    async function loadData(page = 1, filters = {}) {
-      try {
-        currentPage = page;
-        currentFilters = filters;
-
-        // Show loading
-        document.getElementById("dataTable").innerHTML = "<tr><td colspan='100'>Loading...</td></tr>";
-
-        const result = await window.database.getPaginatedData({
-          page: page,
-          limit: rowsPerPage,
-          filters: filters,
-          tableName: selectedTable
-        });
-
-        pageData = result.data;
-        totalRecords = result.total;
-
-        console.log(`Page ${page} loaded: ${pageData.length} records of ${totalRecords} total`);
-        renderTable();
-        loadStatistics(filters);
-      } catch (error) {
-        console.error("Error loading data:", error);
-        document.getElementById("dataTable").innerHTML = "<tr><td>Error loading data</td></tr>";
-      }
-    }
-
-    // RENDER TABLE
-    function renderTable() {
-      const table = document.getElementById("dataTable");
-      const pagination = document.getElementById("pagination");
-
-      if (!pageData.length) {
-        table.innerHTML = "<tr><td>No Data</td></tr>";
-        pagination.innerHTML = "";
-        return;
-      }
-
-      let header = "<tr>";
-      for (let k in pageData[0]) header += `<th>${k}</th>`;
-      header += "</tr>";
-
-      let rows = "";
-      pageData.forEach(row => {
-        rows += "<tr>";
-
-        for (let key in row) {
-          let val = row[key];
-
-          if (key === "DateandTime") val = cleanDateTime(val);
-          if (key === "Mode") {
-            val = val.replace("PRODUC ION", "PRODUCTION").replace("VALIDA ION", "VALIDATION");
-          }
-
-          if (key === "Result") {
-            const c = val.trim().toUpperCase();
-            if (c === "PASS") {
-              rows += `<td><span class="badge-pass">PASS</span></td>`;
-              continue;
-            }
-            if (c === "FAIL") {
-              rows += `<td><span class="badge-fail">FAIL</span></td>`;
-              continue;
-            }
-          }
-
-          rows += `<td>${val}</td>`;
-        }
-
-        rows += "</tr>";
-      });
-
-      table.innerHTML = header + rows;
-
-      const totalPages = Math.ceil(totalRecords / rowsPerPage);
-      const prevDisabled = currentPage <= 1 ? 'disabled' : '';
-      const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
-
-      pagination.innerHTML = `
-        <button onclick="changePage(-1)" ${prevDisabled}>Previous</button>
-        <span style="margin: 0 15px; font-weight: 600;">
-          Page ${currentPage} of ${totalPages}
-        </span>
-        <button onclick="changePage(1)" ${nextDisabled}>Next</button>
-      `;
-    }
-
-    function changePage(direction) {
-      const totalPages = Math.ceil(totalRecords / rowsPerPage);
-      
-      if (direction === 1 && currentPage < totalPages) {
-        loadData(currentPage + 1, currentFilters);
-      }
-      if (direction === -1 && currentPage > 1) {
-        loadData(currentPage - 1, currentFilters);
-      }
-    }
-
-    // FILTERS
-    function applyFilters() {
-      const df = document.getElementById("dateFrom").value;
-      const mode = document.getElementById("modeFilter").value;
-
-      const filters = {};
-      if (df) filters.dateFrom = df;
-      if (mode) filters.mode = mode;
-
-      loadData(1, filters);
-    }
-
-    function resetFilters() {
-      document.getElementById("dateFrom").value = "";
-      document.getElementById("modeFilter").value = "";
-      loadData(1, {});
-    }
-
-    // EXPORT MENU
-    document.getElementById("exportMainBtn").addEventListener("click", () => {
-      const menu = document.getElementById("exportMenu");
-      menu.style.display = menu.style.display === "block" ? "none" : "block";
-    });
-
-    document.addEventListener("click", (e) => {
-      const btn = document.getElementById("exportMainBtn");
-      const menu = document.getElementById("exportMenu");
-      if (!btn.contains(e.target) && !menu.contains(e.target)) {
-        menu.style.display = "none";
-      }
-    });
-
-    function goToCharts() {
-      window.location.href = 'charts.html';
-    }
-    
-    function openDBSettings() {
-  window.database.openDBSettings();
+  // NOW load data only after DB is connected
+  await loadData(1, {});
 }
 
 
-    // Initial load
-    loadTables();
-  </script>
+// -------------------------
+//  TABLE SELECT CHANGE
+// -------------------------
+document.getElementById("tableSelector").addEventListener("change", (e) => {
+  selectedTable = e.target.value;
+  resetFilters();
+});
+
+
+// -------------------------
+// STATISTICS
+// -------------------------
+async function loadStatistics(filters = {}) {
+  try {
+    const stats = await window.database.getStatistics({
+      filters,
+      tableName: selectedTable
+    });
+
+    document.getElementById("totalTests").textContent = stats.totalTests || 0;
+    document.getElementById("passCount").textContent = stats.passCount || 0;
+    document.getElementById("failCount").textContent = stats.failCount || 0;
+  } catch (err) {
+    console.error("Stats error", err);
+  }
+}
+
+
+// -------------------------
+// LOAD DATA (only when DB configured)
+// -------------------------
+async function loadData(page = 1, filters = {}) {
+  if (!selectedTable) return;
+
+  currentPage = page;
+  currentFilters = filters;
+
+  document.getElementById("dataTable").innerHTML =
+    "<tr><td colspan='100'>Loading...</td></tr>";
+
+  try {
+    const result = await window.database.getPaginatedData({
+      page,
+      limit: rowsPerPage,
+      filters,
+      tableName: selectedTable
+    });
+
+    pageData = result.data;
+    totalRecords = result.total;
+
+    renderTable();
+    loadStatistics(filters);
+
+  } catch (error) {
+    console.error("Load data error:", error);
+    document.getElementById("dataTable").innerHTML =
+      "<tr><td>Error loading data</td></tr>";
+  }
+}
+
+
+// -------------------------
+// RENDER TABLE
+// -------------------------
+function renderTable() {
+  const table = document.getElementById("dataTable");
+  const pagination = document.getElementById("pagination");
+
+  if (!pageData.length) {
+    table.innerHTML = "<tr><td>No data</td></tr>";
+    pagination.innerHTML = "";
+    return;
+  }
+
+  let header = "<tr>";
+  for (let k in pageData[0]) header += `<th>${k}</th>`;
+  header += "</tr>";
+
+  let rows = "";
+  pageData.forEach(row => {
+    rows += "<tr>";
+
+    for (let key in row) {
+      let val = row[key];
+
+      if (key === "DateandTime") val = cleanDateTime(val);
+      if (key === "Mode") {
+        val = val.replace("PRODUC ION", "PRODUCTION").replace("VALIDA ION", "VALIDATION");
+      }
+
+      if (key === "Result") {
+        const x = val.trim().toUpperCase();
+        if (x === "PASS") { rows += `<td><span class="badge-pass">PASS</span></td>`; continue; }
+        if (x === "FAIL") { rows += `<td><span class="badge-fail">FAIL</span></td>`; continue; }
+      }
+
+      rows += `<td>${val}</td>`;
+    }
+
+    rows += "</tr>";
+  });
+
+  table.innerHTML = header + rows;
+
+  const totalPages = Math.ceil(totalRecords / rowsPerPage);
+  pagination.innerHTML = `
+    <button onclick="changePage(-1)" ${currentPage <= 1 ? "disabled" : ""}>Previous</button>
+    <span style="margin:0 15px;font-weight:600;">Page ${currentPage} of ${totalPages}</span>
+    <button onclick="changePage(1)" ${currentPage >= totalPages ? "disabled" : ""}>Next</button>
+  `;
+}
+
+
+// -------------------------
+// Pagination
+// -------------------------
+function changePage(dir) {
+  const totalPages = Math.ceil(totalRecords / rowsPerPage);
+  if (dir === 1 && currentPage < totalPages) loadData(currentPage + 1, currentFilters);
+  if (dir === -1 && currentPage > 1) loadData(currentPage - 1, currentFilters);
+}
+
+
+// -------------------------
+// Filters
+// -------------------------
+function applyFilters() {
+  const df = document.getElementById("dateFrom").value;
+  const mode = document.getElementById("modeFilter").value;
+
+  const filters = {};
+  if (df) filters.dateFrom = df;
+  if (mode) filters.mode = mode;
+
+  loadData(1, filters);
+}
+
+function resetFilters() {
+  document.getElementById("dateFrom").value = "";
+  document.getElementById("modeFilter").value = "";
+  loadData(1, {});
+}
+
+
+// -------------------------
+// EXPORT MENU
+// -------------------------
+document.getElementById("exportMainBtn").addEventListener("click", () => {
+  const menu = document.getElementById("exportMenu");
+  menu.style.display = menu.style.display === "block" ? "none" : "block";
+});
+
+document.addEventListener("click", (e) => {
+  const btn = document.getElementById("exportMainBtn");
+  const menu = document.getElementById("exportMenu");
+  if (!btn.contains(e.target) && !menu.contains(e.target)) {
+    menu.style.display = "none";
+  }
+});
+
+function goToCharts() {
+  window.location.href = "charts.html";
+}
+
+function openDBSettings() {
+  window.database.openDBSettings();
+}
+
+window.api?.onDBUpdated?.(() => location.reload());
+
+
+
+window.databaseUpdated = false;
+
+window.electron?.ipcRenderer?.on("refresh-after-db-update", () => {
+  console.log("DB updated → refreshing table...");
+  window.location.reload();
+});
+
+window.addEventListener("db-updated", () => {
+  console.log("Database updated – reloading tables...");
+  loadTables();
+});
+
+</script>
 </body>
 </html>

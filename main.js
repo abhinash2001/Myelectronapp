@@ -410,10 +410,6 @@ ipcMain.handle("get-tables-list", () => {
 // DB SETTINGS IPC HANDLERS
 // ================================
 
-// Get current DB configuration
-ipcMain.handle("db-get-config", () => {
-  return dbConfig;
-});
 
 // Save new DB configuration
 ipcMain.handle("db-save-config", (event, newConfig) => {
@@ -616,6 +612,14 @@ ipcMain.on("export-pdf", async () => {
     console.error("PDF export error:", error);
   }
 });
+
+
+ipcMain.on("db-updated", () => {
+  if (mainWin) {
+    mainWin.webContents.send("refresh-after-db-update");
+  }
+});
+
 
 // ================================
 // EXPORT EXCEL

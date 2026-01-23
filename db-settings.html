@@ -129,92 +129,101 @@
   </div>
 
   <script>
-    const statusBox = document.getElementById("status");
-    const sqlAuth = document.getElementById("sqlAuthFields");
+  const statusBox = document.getElementById("status");
+  const sqlAuth = document.getElementById("sqlAuthFields");
 
-    // Load existing config on startup
-    async function loadConfig() {
-      const config = await window.database.getDBConfig();
+  // Load existing config on startup
+  async function loadConfig() {
+    const config = await window.database.getDBConfig();
 
-      document.getElementById("server").value = config.server;
-      document.getElementById("database").value = config.database;
-      document.getElementById("auth").value = config.auth;
+    document.getElementById("server").value = config.server;
+    document.getElementById("database").value = config.database;
+    document.getElementById("auth").value = config.auth;
 
-      if (config.auth === "sql") {
-        sqlAuth.style.display = "block";
-      }
-
-      document.getElementById("user").value = config.user;
-      document.getElementById("password").value = config.password;
+    if (config.auth === "sql") {
+      sqlAuth.style.display = "block";
     }
 
-    // Show/hide SQL auth fields
-    document.getElementById("auth").addEventListener("change", () => {
-      sqlAuth.style.display = 
-        document.getElementById("auth").value === "sql"
+    document.getElementById("user").value = config.user;
+    document.getElementById("password").value = config.password;
+  }
+
+  // Show/hide SQL auth fields
+  document.getElementById("auth").addEventListener("change", () => {
+    sqlAuth.style.display =
+      document.getElementById("auth").value === "sql"
         ? "block"
         : "none";
-    });
+  });
 
-   // Test Connection
-async function testConnection() {
-  statusBox.textContent = "Testing connection...";
-  statusBox.style.color = "blue";
+  // ⭐ FIXED: Test Connection
+  async function testConnection() {
+    statusBox.textContent = "Testing connection...";
+    statusBox.style.color = "blue";
 
-  const config = getFormConfig();
-  
-  // Validate inputs
-  if (!config.server || !config.database) {
-    statusBox.textContent = "Please fill server and database fields";
-    statusBox.style.color = "red";
-    return;
-  }
+    const config = getFormConfig();
 
-  if (config.auth === "sql" && (!config.user || !config.password)) {
-    statusBox.textContent = "Please fill username and password for SQL Login";
-    statusBox.style.color = "red";
-    return;
-  }
-
-  const result = await window.database.testDBConnection(config);
-
-  if (result.success) {
-    statusBox.textContent = "✅ Connection Successful!";
-    statusBox.style.color = "green";
-  } else {
-    statusBox.textContent = "❌ Failed: " + result.message;
-    statusBox.style.color = "red";
-  }
-}
-
-    // Save Settings
-    async function saveSettings() {
-      const config = getFormConfig();
-      await window.database.saveDBConfig(config);
-
-      statusBox.textContent = "Settings Saved ✔";
-      statusBox.style.color = "green";
-      setTimeout(() => window.close(), 800);
+    if (!config.server || !config.database) {
+      statusBox.textContent = "Please fill server and database fields";
+      statusBox.style.color = "red";
+      return;
     }
 
-    function getFormConfig() {
-      return {
-        server: document.getElementById("server").value,
-        database: document.getElementById("database").value,
-        auth: document.getElementById("auth").value,
-        user: document.getElementById("auth").value === "sql"
+    if (config.auth === "sql" && (!config.user || !config.password)) {
+      statusBox.textContent = "Please fill username and password";
+      statusBox.style.color = "red";
+      return;
+    }
+
+    const result = await window.database.testDBConnection(config);
+
+    if (result.success) {
+      statusBox.textContent = "✅ Connection Successful!";
+      statusBox.style.color = "green";
+    } else {
+      statusBox.textContent = "❌ Failed: " + result.message;
+      statusBox.style.color = "red";
+    }
+  }
+
+  // Save Settings
+  async function saveSettings() {
+    const config = getFormConfig();
+    await window.database.saveDBConfig(config);
+    window.database.notifyDBUpdated();
+
+    statusBox.textContent = "Settings Saved ✔";
+    statusBox.style.color = "green";
+    setTimeout(() => window.close(), 800);
+  }
+
+  function getFormConfig() {
+    return {
+      server: document.getElementById("server").value,
+      database: document.getElementById("database").value,
+      auth: document.getElementById("auth").value,
+      user:
+        document.getElementById("auth").value === "sql"
           ? document.getElementById("user").value
           : "",
-        password: document.getElementById("auth").value === "sql"
+      password:
+        document.getElementById("auth").value === "sql"
           ? document.getElementById("password").value
           : ""
-      };
-    }
+    };
+  }
 
+  // ⭐ NEW: LOGOUT BUTTON HANDLER (fully working)
+  document.getElementById("logoutBtn").addEventListener("click", () => {
+    window.database.logoutDB();       // <---- Calls main.js "db-logout"
+    statusBox.textContent = "Logged out from server.";
+    statusBox.style.color = "orange";
+    setTimeout(() => window.close(), 800);
+  });
 
+  loadConfig();
+</script>
 
-    loadConfig();
-  </script>
 
 </body>
 </html>
