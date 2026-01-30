@@ -1,111 +1,485 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<style>
-body {
-  font-family: Arial;
-  background: #111;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-.box {
-  width: 330px;
-  padding: 25px;
-  background: #1c1c1c;
-  border-radius: 10px;
-}
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #222;
-  color: white;
-  font-size: 15px;
-}
-button {
-  width: 100%;
-  padding: 12px;
-  background: #4caf50;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  color: white;
-  cursor: pointer;
-}
-button:hover {
-  background: #46a049;
-}
-a {
-  color: #6ea8ff;
-  cursor: pointer;
-}
-#msg {
-  margin-top: 10px;
-  height: 18px;
-  font-size: 14px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Production Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131829;
+      --bg-card: #1a1f35;
+      --accent-primary: #00d4ff;
+      --accent-secondary: #7c3aed;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border: #2d3548;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 30% 40%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(124, 58, 237, 0.15) 0%, transparent 50%);
+      animation: rotate 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Floating particles */
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 10s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-100px) translateX(50px); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 450px;
+      padding: 2rem;
+    }
+
+    .login-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    .forgot-password {
+      text-align: right;
+      margin-bottom: 1.5rem;
+    }
+
+    .forgot-password a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: opacity 0.3s ease;
+    }
+
+    .forgot-password a:hover {
+      opacity: 0.8;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 2rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      padding: 0 1rem;
+    }
+
+    .signup-link {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .signup-link a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+
+    .signup-link a:hover {
+      opacity: 0.8;
+    }
+
+    #msg {
+      margin-top: 1rem;
+      padding: 0.875rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #msg.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      display: block;
+    }
+
+    #msg.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      display: block;
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .login-box {
+        padding: 2rem 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.75rem;
+      }
+    }
+  </style>
 </head>
-
 <body>
-<div class="box">
-  <h2 style="text-align:center;">Login</h2>
+  <!-- Particles -->
+  <div class="particle" style="top: 10%; left: 20%; animation-delay: 0s;"></div>
+  <div class="particle" style="top: 20%; left: 80%; animation-delay: 2s;"></div>
+  <div class="particle" style="top: 60%; left: 10%; animation-delay: 4s;"></div>
+  <div class="particle" style="top: 80%; left: 70%; animation-delay: 6s;"></div>
+  <div class="particle" style="top: 40%; left: 90%; animation-delay: 8s;"></div>
 
-  <input id="email" type="email" autocomplete="off" placeholder="Email">
-  <input id="password" type="password" autocomplete="new-password" placeholder="Password">
+  <div class="container">
+    <div class="login-box">
+      <div class="logo">🏭</div>
+      <h2>Welcome Back</h2>
+      <p class="subtitle">Sign in to your production dashboard</p>
 
-  <button id="loginBtn">Login</button>
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📧</span>
+          <input 
+            id="email" 
+            type="email" 
+            autocomplete="off" 
+            placeholder="Enter your email"
+            required
+          >
+        </div>
+      </div>
 
-  <p style="margin-top:12px;">New user? <a id="goSignup">Create Account</a></p>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input 
+            id="password" 
+            type="password" 
+            autocomplete="new-password" 
+            placeholder="Enter your password"
+            required
+          >
+        </div>
+      </div>
 
-  <p id="msg"></p>
-</div>
+      <div class="forgot-password">
+        <a href="#" onclick="return false;">Forgot password?</a>
+      </div>
 
-<script>
-// -------------------------------
-// LOGIN BUTTON
-// -------------------------------
-document.getElementById("loginBtn").onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const msg = document.getElementById("msg");
+      <button id="loginBtn">
+        Sign In
+      </button>
 
-  msg.style.color = "red";
-  msg.textContent = "";
+      <div id="msg"></div>
 
-  if (!email || !password) {
-    msg.textContent = "Please fill all fields";
-    return;
-  }
+      <div class="divider">
+        <span>or</span>
+      </div>
 
-  const result = await window.auth.login({ email, password });
+      <div class="signup-link">
+        Don't have an account? <a id="goSignup">Create one now</a>
+      </div>
+    </div>
+  </div>
 
-  if (!result.success) {
-    msg.textContent = result.message;
-    return;
-  }
+  <script>
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const msg = document.getElementById("msg");
 
-  msg.style.color = "green";
-  msg.textContent = "Login successful!";
+    // Enter key support
+    passwordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        loginBtn.click();
+      }
+    });
 
-  setTimeout(() => {
-    window.auth.loginSuccess();
-  }, 300);
-};
+    emailInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        passwordInput.focus();
+      }
+    });
 
-// -------------------------------
-// GO TO SIGNUP PAGE
-// -------------------------------
-document.getElementById("goSignup").onclick = () => {
-  window.auth.openSignup();
-};
-</script>
+    // Login button handler
+    loginBtn.onclick = async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
 
+      // Reset message
+      msg.className = "";
+      msg.textContent = "";
+
+      // Validation
+      if (!email || !password) {
+        msg.className = "error";
+        msg.textContent = "Please fill in all fields";
+        return;
+      }
+
+      if (!email.includes("@")) {
+        msg.className = "error";
+        msg.textContent = "Please enter a valid email address";
+        return;
+      }
+
+      // Show loading state
+      loginBtn.disabled = true;
+      const originalText = loginBtn.textContent;
+      loginBtn.innerHTML = 'Signing in...<span class="spinner"></span>';
+
+      try {
+        // Call auth API
+        const result = await window.auth.login({ email, password });
+
+        if (!result.success) {
+          msg.className = "error";
+          msg.textContent = result.message || "Login failed. Please try again.";
+          loginBtn.disabled = false;
+          loginBtn.textContent = originalText;
+          return;
+        }
+
+        // Success
+        msg.className = "success";
+        msg.textContent = "Login successful! Redirecting...";
+
+        setTimeout(() => {
+          window.auth.loginSuccess();
+        }, 500);
+
+      } catch (error) {
+        msg.className = "error";
+        msg.textContent = "An error occurred. Please try again.";
+        loginBtn.disabled = false;
+        loginBtn.textContent = originalText;
+      }
+    };
+
+    // Go to signup
+    document.getElementById("goSignup").onclick = () => {
+      window.auth.openSignup();
+    };
+  </script>
 </body>
 </html>

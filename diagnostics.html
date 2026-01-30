@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Diagnostics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131829;
+      --bg-card: #1a1f35;
+      --accent-primary: #00d4ff;
+      --accent-secondary: #7c3aed;
+      --accent-success: #10b981;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border: #2d3548;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      color: var(--accent-primary);
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      margin-right: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    pre {
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .output {
+      background: var(--bg-secondary);
+      padding: 1rem;
+      border-radius: 8px;
+      margin-top: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--bg-secondary);
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .status {
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    .status.show {
+      display: block;
+    }
+
+    .status.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--accent-success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    select, input {
+      padding: 0.75rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      margin-right: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔍 Database Diagnostics</h1>
+
+    <!-- Section 1: Database Info -->
+    <div class="section">
+      <h2>1. Database Configuration</h2>
+      <button class="btn" onclick="showDBConfig()">Show Current Config</button>
+      <div id="configOutput" class="output" style="display: none;"></div>
+    </div>
+
+    <!-- Section 2: List Tables -->
+    <div class="section">
+      <h2>2. Database Tables</h2>
+      <button class="btn" onclick="listTables()">List All Tables</button>
+      <div id="tablesOutput" class="output" style="display: none;"></div>
+    </div>
+
+    <!-- Section 3: Table Structure -->
+    <div class="section">
+      <h2>3. Table Structure</h2>
+      <select id="tableSelect">
+        <option value="">Select a table...</option>
+      </select>
+      <button class="btn" onclick="showTableStructure()">Show Structure</button>
+      <div id="structureOutput" class="output" style="display: none;"></div>
+    </div>
+
+    <!-- Section 4: Sample Data -->
+    <div class="section">
+      <h2>4. Sample Data</h2>
+      <select id="sampleTableSelect">
+        <option value="">Select a table...</option>
+      </select>
+      <input type="number" id="rowCount" value="10" min="1" max="100" placeholder="Rows">
+      <button class="btn" onclick="showSampleData()">Show Sample Data</button>
+      <div id="sampleOutput" class="output" style="display: none;"></div>
+    </div>
+
+    <!-- Section 5: Test Production Query -->
+    <div class="section">
+      <h2>5. Test Production Data Query</h2>
+      <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+        This tests the actual query used by the dashboard
+      </p>
+      <label>Select Table:</label>
+      <select id="prodTableSelect">
+        <option value="">Select a table...</option>
+      </select>
+      <br><br>
+      <label>Date:</label>
+      <input type="date" id="testDate">
+      <br><br>
+      <button class="btn" onclick="testProductionQuery()">Run Production Query</button>
+      <div class="status" id="queryStatus"></div>
+      <div id="queryOutput" class="output" style="display: none;"></div>
+    </div>
+  </div>
+
+  <script>
+    // Set today's date
+    document.getElementById('testDate').value = new Date().toISOString().split('T')[0];
+
+    // Show current DB config
+    async function showDBConfig() {
+      const output = document.getElementById('configOutput');
+      try {
+        const config = await window.api.getDBConfig();
+        output.style.display = 'block';
+        output.innerHTML = `<pre>${JSON.stringify(config, null, 2)}</pre>`;
+      } catch (error) {
+        output.style.display = 'block';
+        output.innerHTML = `<pre style="color: #ef4444;">Error: ${error.message}</pre>`;
+      }
+    }
+
+    // List all tables
+    async function listTables() {
+      const output = document.getElementById('tablesOutput');
+      output.style.display = 'block';
+      output.innerHTML = '<p>Loading tables...</p>';
+
+      try {
+        const tables = await window.api.getTablesList();
+        
+        if (!tables || tables.length === 0) {
+          output.innerHTML = '<p style="color: #ef4444;">No tables found or database not connected</p>';
+          return;
+        }
+
+        // Populate all table selects
+        const tableSelects = [
+          document.getElementById('tableSelect'),
+          document.getElementById('sampleTableSelect'),
+          document.getElementById('prodTableSelect')
+        ];
+
+        tableSelects.forEach(select => {
+          select.innerHTML = '<option value="">Select a table...</option>';
+          tables.forEach(table => {
+            const option = document.createElement('option');
+            option.value = table;
+            option.textContent = table;
+            select.appendChild(option);
+          });
+        });
+
+        output.innerHTML = `
+          <p style="color: var(--accent-success);">Found ${tables.length} tables:</p>
+          <pre>${tables.join('\n')}</pre>
+        `;
+      } catch (error) {
+        output.innerHTML = `<pre style="color: #ef4444;">Error: ${error.message}</pre>`;
+      }
+    }
+
+    // Show table structure
+    async function showTableStructure() {
+      const tableName = document.getElementById('tableSelect').value;
+      const output = document.getElementById('structureOutput');
+
+      if (!tableName) {
+        alert('Please select a table');
+        return;
+      }
+
+      output.style.display = 'block';
+      output.innerHTML = '<p>Loading structure...</p>';
+
+      try {
+        // This will use a custom IPC we'll add to main.js
+        const structure = await window.api.getTableStructure(tableName);
+        
+        let html = `<p style="color: var(--accent-success);">Structure of table: ${tableName}</p>`;
+        html += '<table><thead><tr><th>Column Name</th><th>Data Type</th><th>Nullable</th></tr></thead><tbody>';
+        
+        structure.forEach(col => {
+          html += `<tr>
+            <td>${col.COLUMN_NAME}</td>
+            <td>${col.DATA_TYPE}</td>
+            <td>${col.IS_NULLABLE}</td>
+          </tr>`;
+        });
+        
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      } catch (error) {
+        output.innerHTML = `<pre style="color: #ef4444;">Error: ${error.message}</pre>`;
+      }
+    }
+
+    // Show sample data
+    async function showSampleData() {
+      const tableName = document.getElementById('sampleTableSelect').value;
+      const rowCount = document.getElementById('rowCount').value;
+      const output = document.getElementById('sampleOutput');
+
+      if (!tableName) {
+        alert('Please select a table');
+        return;
+      }
+
+      output.style.display = 'block';
+      output.innerHTML = '<p>Loading data...</p>';
+
+      try {
+        const data = await window.api.getSampleData(tableName, parseInt(rowCount));
+        
+        if (!data || data.length === 0) {
+          output.innerHTML = '<p style="color: #ef4444;">No data found in this table</p>';
+          return;
+        }
+
+        // Create table
+        let html = `<p style="color: var(--accent-success);">Sample data from ${tableName} (${data.length} rows):</p>`;
+        html += '<table><thead><tr>';
+        
+        // Headers
+        Object.keys(data[0]).forEach(key => {
+          html += `<th>${key}</th>`;
+        });
+        html += '</tr></thead><tbody>';
+        
+        // Rows
+        data.forEach(row => {
+          html += '<tr>';
+          Object.values(row).forEach(val => {
+            html += `<td>${val === null ? 'NULL' : val}</td>`;
+          });
+          html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        output.innerHTML = html;
+      } catch (error) {
+        output.innerHTML = `<pre style="color: #ef4444;">Error: ${error.message}</pre>`;
+      }
+    }
+
+    // Test production query
+    async function testProductionQuery() {
+      const tableName = document.getElementById('prodTableSelect').value;
+      const date = document.getElementById('testDate').value;
+      const output = document.getElementById('queryOutput');
+      const status = document.getElementById('queryStatus');
+
+      if (!tableName) {
+        alert('Please select a table');
+        return;
+      }
+
+      status.className = 'status show';
+      status.textContent = 'Running query...';
+      output.style.display = 'block';
+      output.innerHTML = '<p>Testing production data query...</p>';
+
+      try {
+        // Test the actual dashboard query
+        const filters = {
+          date: date,
+          shift: 'all',
+          machine: 'all'
+        };
+
+        // Call the production data endpoint
+        const result = await window.api.testProductionQueryDirect(tableName, filters);
+        
+        status.className = 'status show success';
+        status.textContent = '✅ Query executed successfully!';
+
+        output.innerHTML = `
+          <p style="color: var(--accent-success);">Query Result:</p>
+          <pre>${JSON.stringify(result, null, 2)}</pre>
+        `;
+      } catch (error) {
+        status.className = 'status show error';
+        status.textContent = '❌ Query failed: ' + error.message;
+        output.innerHTML = `<pre style="color: #ef4444;">Error: ${error.message}\n\nThis means the dashboard query won't work with this table structure.</pre>`;
+      }
+    }
+
+    // Auto-load tables on page load
+    window.addEventListener('load', () => {
+      listTables();
+    });
+  </script>
+</body>
+</html>

@@ -1,229 +1,585 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Database Settings</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Settings - Production Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: "Segoe UI", Arial;
-      background: #eef3f7;
-      margin: 0;
-      padding: 20px;
-      color: #333;
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131829;
+      --bg-card: #1a1f35;
+      --accent-primary: #00d4ff;
+      --accent-secondary: #7c3aed;
+      --accent-success: #10b981;
+      --accent-danger: #ef4444;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border: #2d3548;
     }
 
-    body.dark {
-      background: #1a1d23;
-      color: #e2e8f0;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 500px;
+      padding: 2rem;
     }
 
     .settings-card {
-      max-width: 420px;
-      margin: auto;
-      background: white;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 2.5rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s ease-out;
     }
 
-    body.dark .settings-card {
-      background: #1f2126;
-      box-shadow: 0 4px 16px rgba(255,255,255,0.08);
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
     }
 
     h2 {
       text-align: center;
-      margin-bottom: 20px;
-      color: #2b4c7e;
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
-    body.dark h2 {
-      color: #9cc2ff;
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
     }
 
-    label {
-      font-weight: 600;
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group label {
       display: block;
-      margin: 10px 0 5px;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
     }
 
     input, select {
       width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
-      font-size: 15px;
-      background: #f5f7fb;
+      padding: 0.875rem 1rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      transition: all 0.3s ease;
     }
 
-    body.dark input, body.dark select {
-      background: #2b2d33;
-      border-color: #4a4c52;
-      color: white;
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 3rem;
+    }
+
+    #sqlAuthFields {
+      display: none;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    #sqlAuthFields.show {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border-radius: 10px;
+      margin-bottom: 1.5rem;
+      display: none;
+    }
+
+    .connection-status.show {
+      display: flex;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+
+    .status-indicator.success {
+      background: var(--accent-success);
+    }
+
+    .status-indicator.error {
+      background: var(--accent-danger);
+    }
+
+    .status-indicator.testing {
+      background: var(--accent-primary);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
     }
 
     .btn {
       width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      background: #4072ee;
-      color: white;
+      padding: 0.875rem;
       border: none;
       border-radius: 10px;
-      font-size: 16px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 500;
       cursor: pointer;
-      font-weight: 600;
+      transition: all 0.3s ease;
+      margin-bottom: 0.75rem;
     }
 
-    .btn:hover {
-      box-shadow: 0 4px 12px rgba(64,114,238,0.35);
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    .btn-success {
+      background: var(--accent-success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      opacity: 0.9;
       transform: translateY(-2px);
     }
 
-    #status {
-      margin-top: 10px;
-      text-align: center;
-      font-size: 14px;
-      height: 20px;
-      font-weight: bold;
+    .btn-danger {
+      background: var(--accent-danger);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .info-box {
+      background: rgba(0, 212, 255, 0.05);
+      border: 1px solid rgba(0, 212, 255, 0.2);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .info-box strong {
+      color: var(--accent-primary);
+      display: block;
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
-
 <body>
+  <div class="container">
+    <div class="settings-card">
+      <div class="logo">🗄️</div>
+      <h2>Database Settings</h2>
+      <p class="subtitle">Configure your SQL Server connection</p>
 
-  <div class="settings-card">
-    <h2>Database Settings</h2>
+      <div class="connection-status" id="connectionStatus">
+        <div class="status-indicator" id="statusIndicator"></div>
+        <span id="statusText">Not connected</span>
+      </div>
 
-    <label>SQL Server Name</label>
-    <input id="server" type="text" placeholder="Example: DESKTOP-PC\\SQLEXPRESS" />
+      <div class="form-group">
+        <label for="server">SQL Server Name</label>
+        <input 
+          id="server" 
+          type="text" 
+          placeholder="Example: DESKTOP-PC\SQLEXPRESS"
+        >
+      </div>
 
-    <label>Database Name</label>
-    <input id="database" type="text" placeholder="MLTesting" />
+      <div class="form-group">
+        <label for="database">Database Name</label>
+        <input 
+          id="database" 
+          type="text" 
+          placeholder="MLTesting"
+        >
+      </div>
 
-    <label>Authentication Mode</label>
-    <select id="auth">
-      <option value="windows">Windows Authentication</option>
-      <option value="sql">SQL Login (Username & Password)</option>
-    </select>
+      <div class="form-group">
+        <label for="auth">Authentication Mode</label>
+        <select id="auth">
+          <option value="windows">Windows Authentication</option>
+          <option value="sql">SQL Login (Username & Password)</option>
+        </select>
+      </div>
 
-    <div id="sqlAuthFields" style="display:none;">
-      <label>Username</label>
-      <input id="user" type="text" placeholder="SQL Username" />
+      <div id="sqlAuthFields">
+        <div class="form-group">
+          <label for="user">Username</label>
+          <input 
+            id="user" 
+            type="text" 
+            placeholder="SQL Username"
+          >
+        </div>
 
-      <label>Password</label>
-      <input id="password" type="password" placeholder="SQL Password" />
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input 
+            id="password" 
+            type="password" 
+            placeholder="SQL Password"
+          >
+        </div>
+      </div>
+
+      <button class="btn btn-success" id="testBtn" onclick="testConnection()">
+        Test Connection
+      </button>
+
+      <button class="btn btn-primary" id="saveBtn" onclick="saveSettings()">
+        Save Settings
+      </button>
+
+      <button class="btn btn-danger" id="logoutBtn" onclick="logoutFromServer()">
+        Logout From Server
+      </button>
+
+      <div class="info-box">
+        <strong>💡 Connection Tips:</strong>
+        For Windows Authentication, make sure SQL Server allows your Windows account access. 
+        For SQL Login, use a valid SQL Server username and password.
+      </div>
     </div>
-
-    <button class="btn" onclick="testConnection()">Test Connection</button>
-    <button class="btn" onclick="saveSettings()">Save Settings</button>
-    <button id="logoutBtn" 
-        style="width:100%; margin-top:10px; padding:12px; background:#e74c3c; color:white; border:none; border-radius:6px; font-size:16px; cursor:pointer;">
-  Logout From Server
-</button>
-
-
-    <div id="status"></div>
   </div>
 
   <script>
-  const statusBox = document.getElementById("status");
-  const sqlAuth = document.getElementById("sqlAuthFields");
+    // ================================
+    // INITIALIZATION
+    // ================================
+    window.addEventListener('load', () => {
+      loadConfig();
+      setupEventListeners();
+    });
 
-  // Load existing config on startup
-  async function loadConfig() {
-    const config = await window.database.getDBConfig();
-
-    document.getElementById("server").value = config.server;
-    document.getElementById("database").value = config.database;
-    document.getElementById("auth").value = config.auth;
-
-    if (config.auth === "sql") {
-      sqlAuth.style.display = "block";
+    // ================================
+    // LOAD EXISTING CONFIG
+    // ================================
+    async function loadConfig() {
+      try {
+        const config = await window.api.getDBConfig();
+        
+        document.getElementById('server').value = config.server || '';
+        document.getElementById('database').value = config.database || '';
+        document.getElementById('auth').value = config.auth || 'windows';
+        document.getElementById('user').value = config.user || '';
+        document.getElementById('password').value = config.password || '';
+        
+        // Show/hide SQL auth fields
+        toggleSQLAuthFields();
+        
+        console.log('Config loaded:', config);
+      } catch (error) {
+        console.error('Error loading config:', error);
+        showStatus('error', 'Failed to load configuration');
+      }
     }
 
-    document.getElementById("user").value = config.user;
-    document.getElementById("password").value = config.password;
-  }
-
-  // Show/hide SQL auth fields
-  document.getElementById("auth").addEventListener("change", () => {
-    sqlAuth.style.display =
-      document.getElementById("auth").value === "sql"
-        ? "block"
-        : "none";
-  });
-
-  // ⭐ FIXED: Test Connection
-  async function testConnection() {
-    statusBox.textContent = "Testing connection...";
-    statusBox.style.color = "blue";
-
-    const config = getFormConfig();
-
-    if (!config.server || !config.database) {
-      statusBox.textContent = "Please fill server and database fields";
-      statusBox.style.color = "red";
-      return;
+    // ================================
+    // EVENT LISTENERS
+    // ================================
+    function setupEventListeners() {
+      // Show/hide SQL auth fields when auth mode changes
+      document.getElementById('auth').addEventListener('change', toggleSQLAuthFields);
+      
+      // Enable Enter key to test connection
+      ['server', 'database', 'user', 'password'].forEach(id => {
+        document.getElementById(id).addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            testConnection();
+          }
+        });
+      });
     }
 
-    if (config.auth === "sql" && (!config.user || !config.password)) {
-      statusBox.textContent = "Please fill username and password";
-      statusBox.style.color = "red";
-      return;
+    function toggleSQLAuthFields() {
+      const authMode = document.getElementById('auth').value;
+      const sqlAuthFields = document.getElementById('sqlAuthFields');
+      
+      if (authMode === 'sql') {
+        sqlAuthFields.classList.add('show');
+      } else {
+        sqlAuthFields.classList.remove('show');
+      }
     }
 
-    const result = await window.database.testDBConnection(config);
-
-    if (result.success) {
-      statusBox.textContent = "✅ Connection Successful!";
-      statusBox.style.color = "green";
-    } else {
-      statusBox.textContent = "❌ Failed: " + result.message;
-      statusBox.style.color = "red";
+    // ================================
+    // TEST CONNECTION
+    // ================================
+    async function testConnection() {
+      const testBtn = document.getElementById('testBtn');
+      const config = getFormConfig();
+      
+      // Validation
+      if (!config.server || !config.database) {
+        showStatus('error', 'Please fill in server and database name');
+        return;
+      }
+      
+      if (config.auth === 'sql' && (!config.user || !config.password)) {
+        showStatus('error', 'Please fill in username and password');
+        return;
+      }
+      
+      // Show testing state
+      testBtn.disabled = true;
+      testBtn.innerHTML = 'Testing...<span class="spinner"></span>';
+      showStatus('testing', 'Testing connection...');
+      
+      try {
+        const result = await window.api.testConnection(config);
+        
+        if (result.success) {
+          showStatus('success', '✅ Connection Successful!');
+          testBtn.disabled = false;
+          testBtn.textContent = 'Test Connection';
+        } else {
+          showStatus('error', '❌ Failed: ' + (result.message || 'Unknown error'));
+          testBtn.disabled = false;
+          testBtn.textContent = 'Test Connection';
+        }
+      } catch (error) {
+        console.error('Test connection error:', error);
+        showStatus('error', '❌ Error: ' + error.message);
+        testBtn.disabled = false;
+        testBtn.textContent = 'Test Connection';
+      }
     }
-  }
 
-  // Save Settings
-  async function saveSettings() {
-    const config = getFormConfig();
-    await window.database.saveDBConfig(config);
-    window.database.notifyDBUpdated();
+    // ================================
+    // SAVE SETTINGS
+    // ================================
+    async function saveSettings() {
+      const saveBtn = document.getElementById('saveBtn');
+      const config = getFormConfig();
+      
+      // Validation
+      if (!config.server || !config.database) {
+        showStatus('error', 'Please fill in server and database name');
+        return;
+      }
+      
+      // Show saving state
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = 'Saving...<span class="spinner"></span>';
+      
+      try {
+        const result = await window.api.saveDBConfig(config);
+        
+        if (result.success) {
+          showStatus('success', '✅ Settings Saved Successfully!');
+          
+          // Close window after a short delay
+          setTimeout(() => {
+            window.close();
+          }, 1000);
+        } else {
+          showStatus('error', 'Failed to save settings');
+          saveBtn.disabled = false;
+          saveBtn.textContent = 'Save Settings';
+        }
+      } catch (error) {
+        console.error('Save settings error:', error);
+        showStatus('error', 'Error saving settings: ' + error.message);
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save Settings';
+      }
+    }
 
-    statusBox.textContent = "Settings Saved ✔";
-    statusBox.style.color = "green";
-    setTimeout(() => window.close(), 800);
-  }
+    // ================================
+    // LOGOUT FROM SERVER
+    // ================================
+    function logoutFromServer() {
+      if (confirm('Are you sure you want to logout from the database server? This will clear all connection settings.')) {
+        try {
+          window.api.dbLogout();
+          showStatus('success', 'Logged out successfully');
+          
+          // Clear form
+          document.getElementById('server').value = '';
+          document.getElementById('database').value = '';
+          document.getElementById('user').value = '';
+          document.getElementById('password').value = '';
+          
+          // Close window after delay
+          setTimeout(() => {
+            window.close();
+          }, 800);
+        } catch (error) {
+          console.error('Logout error:', error);
+          showStatus('error', 'Error during logout');
+        }
+      }
+    }
 
-  function getFormConfig() {
-    return {
-      server: document.getElementById("server").value,
-      database: document.getElementById("database").value,
-      auth: document.getElementById("auth").value,
-      user:
-        document.getElementById("auth").value === "sql"
-          ? document.getElementById("user").value
-          : "",
-      password:
-        document.getElementById("auth").value === "sql"
-          ? document.getElementById("password").value
-          : ""
-    };
-  }
+    // ================================
+    // HELPER FUNCTIONS
+    // ================================
+    function getFormConfig() {
+      const authMode = document.getElementById('auth').value;
+      
+      return {
+        server: document.getElementById('server').value.trim(),
+        database: document.getElementById('database').value.trim(),
+        auth: authMode,
+        user: authMode === 'sql' ? document.getElementById('user').value.trim() : '',
+        password: authMode === 'sql' ? document.getElementById('password').value.trim() : ''
+      };
+    }
 
-  // ⭐ NEW: LOGOUT BUTTON HANDLER (fully working)
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    window.database.logoutDB();       // <---- Calls main.js "db-logout"
-    statusBox.textContent = "Logged out from server.";
-    statusBox.style.color = "orange";
-    setTimeout(() => window.close(), 800);
-  });
-
-  loadConfig();
-</script>
-
-
+    function showStatus(type, message) {
+      const statusBox = document.getElementById('connectionStatus');
+      const statusIndicator = document.getElementById('statusIndicator');
+      const statusText = document.getElementById('statusText');
+      
+      statusBox.classList.add('show');
+      statusIndicator.className = 'status-indicator ' + type;
+      statusText.textContent = message;
+      
+      console.log('Status:', type, message);
+    }
+  </script>
 </body>
 </html>

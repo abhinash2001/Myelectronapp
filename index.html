@@ -1,687 +1,388 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Production Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-
-    
-
-    /* ---------------------------
-       HEADER SECTION
-    ---------------------------- */
-    .header-section {
-      width: 100%;
-      background: #ffffff;
-      padding: 25px;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-      margin-bottom: 25px;
-      text-align: center;
-      transition: 0.3s ease;
+    :root {
+      --bg-primary: #0a0e1a; --bg-secondary: #131829; --bg-card: #1a1f35; --bg-hover: #222744;
+      --accent-primary: #00d4ff; --accent-secondary: #7c3aed; --accent-success: #10b981;
+      --accent-warning: #f59e0b; --accent-danger: #ef4444; --text-primary: #ffffff;
+      --text-secondary: #94a3b8; --text-muted: #64748b; --border: #2d3548;
     }
-
-    body.dark .header-section {
-      background: #121317;
-      box-shadow: 0 4px 16px rgba(0,0,0,0.45);
-    }
-
-    .title-modern {
-      font-size: 34px;
-      font-weight: 800;
-      letter-spacing: 1px;
-      margin: 0;
-      margin-bottom: 10px;
-      color: #2b4c7e;
-      text-shadow: 0 0 8px rgba(43,76,126,0.25);
-    }
-
-    body.dark .title-modern {
-      color: #9cc2ff;
-      text-shadow: 0 0 12px rgba(156,194,255,0.5);
-    }
-
-
-    /* ---------------------------
-       TABLE SELECTOR
-    ---------------------------- */
-    .table-selector {
-      background: rgba(255,255,255,0.9);
-      padding: 15px 20px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    body.dark .table-selector {
-      background: rgba(30, 32, 38, 0.9);
-    }
-
-    .table-selector label {
-      font-weight: 700;
-      color: #2b4c7e;
-      font-size: 16px;
-    }
-
-    body.dark .table-selector label {
-      color: #9cc2ff;
-    }
-
-    .table-selector select {
-      padding: 10px 15px;
-      border-radius: 8px;
-      border: 2px solid #2b4c7e;
-      background: #f5f7fb;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      min-width: 200px;
-      transition: 0.3s;
-    }
-
-    body.dark .table-selector select {
-      background: #1f2126;
-      border-color: #9cc2ff;
-      color: #e2e8f0;
-    }
-
-    .table-selector select:hover {
-      border-color: #4072ee;
-      box-shadow: 0 0 10px rgba(64,114,238,0.2);
-    }
-
-    /* ---------------------------
-       STATISTICS CARDS
-    ---------------------------- */
-    .stats-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      padding: 20px;
-      border-radius: 12px;
-      color: white;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(102,126,234,0.3);
-    }
-
-    .stat-card.total {
-      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
-    }
-
-    .stat-card.pass {
-      background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    }
-
-    .stat-card.fail {
-      background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
-    }
-
-    .stat-value {
-      font-size: 36px;
-      font-weight: 800;
-      margin: 10px 0;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      opacity: 0.9;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    /* ---------------------------
-       EXPORT BUTTON
-    ---------------------------- */
-    .export-container {
-      position: relative;
-      display: inline-block;
-      margin-bottom: 18px;
-    }
-
-    .export-btn {
-      background: linear-gradient(135deg, #6ea8ff, #4072ee);
-      color: white;
-      padding: 12px 22px;
-      border: none;
-      border-radius: 14px;
-      cursor: pointer;
-      font-size: 15px;
-      font-weight: 600;
-      box-shadow: 0 6px 16px rgba(64,114,238,0.3);
-      transition: 0.3s;
-    }
-
-    .export-btn:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 22px rgba(64,114,238,0.4);
-    }
-
-    .export-menu {
-      display: none;
-      position: absolute;
-      background: rgba(255,255,255,0.8);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      width: 190px;
-      overflow: hidden;
-      animation: fadeDown 0.25s ease;
-      z-index: 20;
-    }
-
-    @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-8px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .export-menu button {
-      padding: 12px 16px;
-      width: 100%;
-      border: none;
-      background: none;
-      text-align: left;
-      cursor: pointer;
-      transition: 0.25s;
-    }
-
-    .export-menu button:hover {
-      background: rgba(0,0,0,0.06);
-      padding-left: 25px;
-    }
-
-    body.dark .export-menu {
-      background: rgba(40,40,40,0.9);
-    }
-
-    body.dark .export-menu button {
-      color: #e2e8f0;
-    }
-
-    body.dark .export-menu button:hover {
-      background: rgba(255,255,255,0.08);
-    }
-
-    /* ---------------------------
-       FILTER BOX
-    ---------------------------- */
-    .filter-box {
-      background: rgba(255,255,255,0.75);
-      backdrop-filter: blur(12px);
-      padding: 16px;
-      border-radius: 16px;
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      margin-bottom: 20px;
-      box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
-      align-items: center;
-    }
-
-    body.dark .filter-box {
-      background: rgba(30, 32, 38, 0.75);
-      border-color: rgba(255,255,255,0.1);
-    }
-
-    .filter-box label {
-      font-weight: 600;
-      color: #2b4c7e;
-    }
-
-    body.dark .filter-box label {
-      color: #9cc2ff;
-    }
-
-    .filter-box input,
-    .filter-box select {
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid #d0d6e0;
-      min-width: 160px;
-      background: #f5f7fb;
-      transition: 0.25s;
-    }
-
-    body.dark .filter-box input,
-    body.dark .filter-box select {
-      background: #1f2126;
-      border-color: #50535a;
-      color: #e2e8f0;
-    }
-
-    .filter-box button {
-      padding: 10px 18px;
-      border-radius: 8px;
-      cursor: pointer;
-      background: transparent;
-      border: 2px solid #2b4c7e;
-      color: #2b4c7e;
-      font-weight: 600;
-      transition: 0.25s ease;
-    }
-
-    .filter-box button:hover {
-      background: #2b4c7e;
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0px 4px 10px rgba(43, 76, 126, 0.3);
-    }
-
-    body.dark .filter-box button {
-      color: #9cc2ff;
-      border-color: #9cc2ff;
-    }
-
-    body.dark .filter-box button:hover {
-      background: #9cc2ff;
-      color: #1b1f25;
-    }
-
-    /* ---------------------------
-       TABLE
-    ---------------------------- */
-    #dataTable {
-      width: 100%;
-      border-collapse: collapse;
-      background: white;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    #dataTable th {
-      background: #2b4c7e;
-      color: white;
-      padding: 12px;
-    }
-
-    #dataTable td {
-      padding: 10px;
-      border-bottom: 1px solid #e2e6ea;
-      text-align: center;
-    }
-
-    body.dark #dataTable {
-      background: #1e1f24;
-    }
-
-    body.dark #dataTable th {
-      background: #292b30;
-      color: #d0d4da;
-    }
-
-    body.dark #dataTable td {
-      color: #e2e8f0;
-      border-color: #2c2d33;
-    }
-
-    /* ---------------------------
-       BADGES
-    ---------------------------- */
-    .badge-pass {
-      background: #2ecc71;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-    }
-
-    .badge-fail {
-      background: #e74c3c;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 20px;
-    }
-
-    /* ---------------------------
-       PAGINATION
-    ---------------------------- */
-    #pagination {
-      margin-top: 15px;
-      text-align: center;
-    }
-
-    #pagination button {
-      background: #2b4c7e;
-      color: white;
-      padding: 8px 14px;
-      border-radius: 6px;
-      border: none;
-      cursor: pointer;
-      margin: 0 5px;
-    }
-
-    #pagination button:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Outfit', sans-serif; background: var(--bg-primary); color: var(--text-primary); }
+    body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.1) 0%, transparent 50%); pointer-events: none; z-index: 0; }
+    .container { position: relative; z-index: 1; max-width: 1600px; margin: 0 auto; padding: 2rem; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .header-left h1 { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+    .header-left p { color: var(--text-secondary); }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .user-info { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 1rem; background: var(--bg-card); border-radius: 12px; border: 1px solid var(--border); }
+    .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1.1rem; }
+    .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 10px; font-family: 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 500; cursor: pointer; transition: all 0.3s ease; }
+    .btn-primary { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3); }
+    .btn-secondary { background: var(--bg-card); color: var(--text-primary); border: 1px solid var(--border); }
+    .btn-secondary:hover { background: var(--bg-hover); border-color: var(--accent-primary); }
+    .current-table-banner { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); padding: 1.5rem; border-radius: 16px; margin-bottom: 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3); }
+    .current-table-banner h2 { margin: 0; font-size: 1.5rem; color: white; }
+    .filter-section { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; border: 1px solid var(--border); }
+    .filter-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; }
+    .filter-group label { display: block; color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; font-weight: 500; }
+    .filter-input { width: 100%; padding: 0.75rem; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-family: 'Outfit', sans-serif; font-size: 0.95rem; transition: all 0.3s ease; }
+    .filter-input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1); }
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border); transition: all 0.3s ease; }
+    .stat-card:hover { transform: translateY(-5px); border-color: var(--accent-primary); box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2); }
+    .stat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+    .stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+    .stat-icon.total { background: rgba(0, 212, 255, 0.15); }
+    .stat-icon.pass { background: rgba(16, 185, 129, 0.15); }
+    .stat-icon.fail { background: rgba(239, 68, 68, 0.15); }
+    .stat-icon.rate { background: rgba(124, 58, 237, 0.15); }
+    .stat-label { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .stat-value { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+    .stat-value.success { background: linear-gradient(135deg, #10b981, #34d399); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-value.danger { background: linear-gradient(135deg, #ef4444, #f87171); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .stat-subtext { color: var(--text-muted); font-size: 0.85rem; }
+    .table-section { background: var(--bg-card); border-radius: 16px; padding: 1.5rem; border: 1px solid var(--border); overflow-x: auto; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+    table { width: 100%; border-collapse: collapse; min-width: 600px; }
+    thead tr { border-bottom: 2px solid var(--border); }
+    th { text-align: left; padding: 1rem; color: var(--text-secondary); font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+    tbody tr { border-bottom: 1px solid var(--border); transition: all 0.3s ease; cursor: pointer; }
+    tbody tr:hover { background: var(--bg-hover); }
+    td { padding: 1rem; color: var(--text-primary); }
+    .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10, 14, 26, 0.95); display: flex; align-items: center; justify-content: center; z-index: 9999; transition: opacity 0.3s ease; }
+    .loading-overlay.hidden { opacity: 0; pointer-events: none; }
+    .spinner { width: 50px; height: 50px; border: 4px solid var(--border); border-top-color: var(--accent-primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .modal { display: none; position: fixed; z-index: 10000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); }
+    .modal.active { display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: var(--bg-card); border-radius: 16px; width: 90%; max-width: 1200px; max-height: 90vh; overflow: hidden; border: 1px solid var(--border); }
+    .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 1.5rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .modal-close { background: none; border: none; color: var(--text-secondary); font-size: 2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 8px; transition: all 0.3s ease; }
+    .modal-close:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .modal-body { padding: 1.5rem; overflow-y: auto; max-height: calc(90vh - 140px); }
+    .detail-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .detail-table thead tr { background: var(--bg-secondary); position: sticky; top: 0; z-index: 10; }
+    .detail-table th { padding: 0.75rem; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border); }
+    .detail-table td { padding: 0.75rem; border-bottom: 1px solid var(--border); }
+    .detail-table tbody tr:hover { background: var(--bg-hover); }
+    .no-data-message { text-align: center; padding: 3rem; color: var(--text-secondary); }
+    .error-message { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--accent-danger); border-radius: 12px; padding: 2rem; text-align: center; margin: 2rem 0; }
+    .error-message h3 { color: var(--accent-danger); margin-bottom: 1rem; }
+    @media (max-width: 1200px) { .filter-grid { grid-template-columns: repeat(3, 1fr); } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 768px) { .container { padding: 1rem; } .header { flex-direction: column; align-items: flex-start; gap: 1rem; } .filter-grid, .stats-grid { grid-template-columns: 1fr; } }
   </style>
 </head>
-
 <body>
-
-  <!-- HEADER SECTION -->
-  <div class="header-section">
-    <h1 class="title-modern">ML TESTING LINE</h1>
-
-    <button onclick="openDBSettings()" 
-style="
-  position:absolute;
-  top:25px;
-  right:25px;
-  background:#4072ee;
-  color:white;
-  padding:10px 16px;
-  border:none;
-  border-radius:8px;
-  cursor:pointer;
-  font-weight:600;
-">
-  ⚙️ Settings
-</button>
-
-
-    
-  </div>
-
-  <!-- TABLE SELECTOR -->
-  <div class="table-selector">
-    <label>📊 Test Bench </label>
-    <select id="tableSelector">
-      <option value="">Loading tables...</option>
-    </select>
-  </div>
-
-  <!-- STATISTICS CARDS -->
-  <div class="stats-container">
-    <div class="stat-card total">
-      <div class="stat-label">Total Tests</div>
-      <div class="stat-value" id="totalTests">0</div>
-    </div>
-    <div class="stat-card pass">
-      <div class="stat-label">Pass</div>
-      <div class="stat-value" id="passCount">0</div>
-    </div>
-    <div class="stat-card fail">
-      <div class="stat-label">Fail</div>
-      <div class="stat-value" id="failCount">0</div>
+  <div class="loading-overlay hidden" id="loadingOverlay"><div class="spinner"></div></div>
+  <div class="modal" id="detailModal">
+    <div class="modal-content">
+      <div class="modal-header"><h2 id="modalTitle">Record Details</h2><button class="modal-close" onclick="closeModal()">&times;</button></div>
+      <div class="modal-body"><div id="modalContent"></div></div>
     </div>
   </div>
-
-  <!-- EXPORT BUTTON -->
-  <div class="export-container">
-    <button id="exportMainBtn" class="export-btn">Export ▼</button>
-
-    <div id="exportMenu" class="export-menu">
-      <button onclick="window.converter.exportPDF()">📄 PDF</button>
-      <button onclick="window.converter.exportExcel()">📊 Excel</button>
-      <button onclick="window.converter.exportWord()">📝 Word</button>
-    </div>
+  <div class="container">
+    <header class="header">
+      <div class="header-left"><h1>MLTesting Production Dashboard</h1><p id="currentDate">Loading...</p></div>
+      <div class="header-right">
+        <div class="user-info"><div class="user-avatar" id="userAvatar">U</div><div><div style="font-weight: 600;" id="userName">User</div><div style="font-size: 0.85rem; color: var(--text-muted);" id="userRole">Operator</div></div></div>
+        <button class="btn btn-secondary" onclick="openSettings()">⚙️ Settings</button>
+        <button class="btn btn-secondary" onclick="logout()">Logout</button>
+      </div>
+    </header>
+    <div class="current-table-banner"><h2>📊 Currently Viewing: <span id="currentTableDisplay">Loading...</span></h2></div>
+    <div id="errorContainer"></div>
+    <section class="filter-section">
+      <div class="filter-grid">
+        <div class="filter-group"><label for="tableSelector">Select Table</label><select id="tableSelector" class="filter-input"><option value="">Loading...</option></select></div>
+        <div class="filter-group"><label for="dateFilter">Select Date</label><input type="date" id="dateFilter" class="filter-input"></div>
+        <div class="filter-group"><label for="shiftFilter">Shift</label><select id="shiftFilter" class="filter-input"><option value="all">All Shifts</option><option value="morning">Morning (6AM - 2PM)</option><option value="afternoon">Afternoon (2PM - 10PM)</option><option value="night">Night (10PM - 6AM)</option></select></div>
+        <div class="filter-group"><label for="identifierFilter" id="identifierLabel">Filter</label><select id="identifierFilter" class="filter-input"><option value="all">All</option></select></div>
+        <div class="filter-group" style="display: flex; align-items: flex-end;"><button class="btn btn-primary" onclick="applyFilters()" style="width: 100%;">🔍 Apply Filters</button></div>
+      </div>
+    </section>
+    <section class="stats-grid">
+      <div class="stat-card"><div class="stat-header"><div class="stat-icon total">📦</div></div><div class="stat-label">Total Records</div><div class="stat-value" id="totalRecords">0</div><div class="stat-subtext">Total count</div></div>
+      <div class="stat-card"><div class="stat-header"><div class="stat-icon pass">✅</div></div><div class="stat-label">Pass Count</div><div class="stat-value success" id="passCount">0</div><div class="stat-subtext">Successful tests</div></div>
+      <div class="stat-card"><div class="stat-header"><div class="stat-icon fail">❌</div></div><div class="stat-label">Fail Count</div><div class="stat-value danger" id="failCount">0</div><div class="stat-subtext">Failed tests</div></div>
+      <div class="stat-card"><div class="stat-header"><div class="stat-icon rate">📊</div></div><div class="stat-label">Pass Rate</div><div class="stat-value" id="passRate">0%</div><div class="stat-subtext">Success percentage</div></div>
+    </section>
+    <section class="table-section">
+      <div class="table-header"><h3>📋 Records (<span id="recordCount">0</span>)</h3><button class="btn btn-secondary" onclick="exportData()">💾 Export Data</button></div>
+      <table><thead><tr id="tableHeaders"></tr></thead><tbody id="recordsTable"></tbody></table>
+    </section>
   </div>
-
-  <button class="export-btn" onclick="goToCharts()" style="margin-left: 10px;">📊 View Charts</button>
-
-  <!-- FILTER BOX -->
-  <div class="filter-box">
-    <label> Date </label>
-    <input type="date" id="dateFrom" />
-
-    <label> Mode </label>
-    <select id="modeFilter">
-      <option value="">All Modes</option>
-      <option value="PRODUCTION">Production</option>
-      <option value="VALIDATION">Validation</option>
-    </select>
-
-    <button onclick="applyFilters()">Apply</button>
-    <button onclick="resetFilters()">Reset</button>
-  </div>
-
-  <table id="dataTable"></table>
-
-  <div id="pagination"></div>
-
   <script>
-let currentPage = 1;
-let totalRecords = 0;
-let currentFilters = {};
-let selectedTable = null;
-const rowsPerPage = 20;
-let pageData = [];
+    let currentFilters = { table: '', date: new Date().toISOString().split('T')[0], shift: 'all', identifier: 'all' };
+    let allRecords = [];
 
-// Format Date-Time
-function cleanDateTime(v) {
-  const d = new Date(v);
-  if (isNaN(d)) return v;
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
-}
-
-// -------------------------
-// 🚫 DO NOT load anything until DB exists
-// -------------------------
-window.database.getDBConfig().then(async config => {
-  if (!config.server || !config.database) {
-    document.getElementById("dataTable").innerHTML =
-      "<tr><td style='padding:20px;font-size:16px;color:red;'>❌ No database connected. Click Settings to configure.</td></tr>";
-    document.getElementById("tableSelector").innerHTML =
-      "<option value=''>No tables</option>";
-    return; // STOP — DO NOT LOAD ANY TABLES
-  }
-
-  // DB is configured → Load tables list
-  await loadTables();
-});
-
-
-// -------------------------
-//  TABLES LIST
-// -------------------------
-async function loadTables() {
-  const tables = await window.database.getTablesList();
-  const selector = document.getElementById("tableSelector");
-
-  if (!tables || tables.length === 0) {
-    selector.innerHTML = "<option>No tables found</option>";
-    return;
-  }
-
-  selector.innerHTML = tables.map(t => `<option value="${t}">${t}</option>`).join('');
-
-  selectedTable = tables[0];
-
-  // NOW load data only after DB is connected
-  await loadData(1, {});
-}
-
-
-// -------------------------
-//  TABLE SELECT CHANGE
-// -------------------------
-document.getElementById("tableSelector").addEventListener("change", (e) => {
-  selectedTable = e.target.value;
-  resetFilters();
-});
-
-
-// -------------------------
-// STATISTICS
-// -------------------------
-async function loadStatistics(filters = {}) {
-  try {
-    const stats = await window.database.getStatistics({
-      filters,
-      tableName: selectedTable
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadUserInfo();
+      setCurrentDate();
+      await loadAvailableTables();
     });
 
-    document.getElementById("totalTests").textContent = stats.totalTests || 0;
-    document.getElementById("passCount").textContent = stats.passCount || 0;
-    document.getElementById("failCount").textContent = stats.failCount || 0;
-  } catch (err) {
-    console.error("Stats error", err);
-  }
-}
-
-
-// -------------------------
-// LOAD DATA (only when DB configured)
-// -------------------------
-async function loadData(page = 1, filters = {}) {
-  if (!selectedTable) return;
-
-  currentPage = page;
-  currentFilters = filters;
-
-  document.getElementById("dataTable").innerHTML =
-    "<tr><td colspan='100'>Loading...</td></tr>";
-
-  try {
-    const result = await window.database.getPaginatedData({
-      page,
-      limit: rowsPerPage,
-      filters,
-      tableName: selectedTable
-    });
-
-    pageData = result.data;
-    totalRecords = result.total;
-
-    renderTable();
-    loadStatistics(filters);
-
-  } catch (error) {
-    console.error("Load data error:", error);
-    document.getElementById("dataTable").innerHTML =
-      "<tr><td>Error loading data</td></tr>";
-  }
-}
-
-
-// -------------------------
-// RENDER TABLE
-// -------------------------
-function renderTable() {
-  const table = document.getElementById("dataTable");
-  const pagination = document.getElementById("pagination");
-
-  if (!pageData.length) {
-    table.innerHTML = "<tr><td>No data</td></tr>";
-    pagination.innerHTML = "";
-    return;
-  }
-
-  let header = "<tr>";
-  for (let k in pageData[0]) header += `<th>${k}</th>`;
-  header += "</tr>";
-
-  let rows = "";
-  pageData.forEach(row => {
-    rows += "<tr>";
-
-    for (let key in row) {
-      let val = row[key];
-
-      if (key === "DateandTime") val = cleanDateTime(val);
-      if (key === "Mode") {
-        val = val.replace("PRODUC ION", "PRODUCTION").replace("VALIDA ION", "VALIDATION");
+    async function loadUserInfo() {
+      try {
+        const user = await window.api?.getCurrentUser?.() || { name: 'User', role: 'Operator' };
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('userRole').textContent = user.role;
+        document.getElementById('userAvatar').textContent = user.name.charAt(0).toUpperCase();
+      } catch (error) {
+        console.error('Error loading user info:', error);
       }
-
-      if (key === "Result") {
-        const x = val.trim().toUpperCase();
-        if (x === "PASS") { rows += `<td><span class="badge-pass">PASS</span></td>`; continue; }
-        if (x === "FAIL") { rows += `<td><span class="badge-fail">FAIL</span></td>`; continue; }
-      }
-
-      rows += `<td>${val}</td>`;
     }
 
-    rows += "</tr>";
-  });
+    function setCurrentDate() {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('dateFilter').value = today;
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', options);
+    }
 
-  table.innerHTML = header + rows;
+    function showLoading() { document.getElementById('loadingOverlay').classList.remove('hidden'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.add('hidden'); }
+    function showError(message) {
+      document.getElementById('errorContainer').innerHTML = `<div class="error-message"><h3>⚠️ Error</h3><p>${message}</p><button class="btn btn-primary" onclick="openSettings()" style="margin-top: 1rem;">Open Settings</button></div>`;
+    }
+    function hideError() { document.getElementById('errorContainer').innerHTML = ''; }
 
-  const totalPages = Math.ceil(totalRecords / rowsPerPage);
-  pagination.innerHTML = `
-    <button onclick="changePage(-1)" ${currentPage <= 1 ? "disabled" : ""}>Previous</button>
-    <span style="margin:0 15px;font-weight:600;">Page ${currentPage} of ${totalPages}</span>
-    <button onclick="changePage(1)" ${currentPage >= totalPages ? "disabled" : ""}>Next</button>
-  `;
-}
+    async function loadAvailableTables() {
+      try {
+        showLoading();
+        const tables = await window.api?.getTablesList?.() || [];
+        console.log('📊 Available tables:', tables);
+        const tableSelector = document.getElementById('tableSelector');
+        tableSelector.innerHTML = '<option value="">-- Select a Table --</option>';
+        tables.forEach(table => {
+          const option = document.createElement('option');
+          option.value = table;
+          option.textContent = table;
+          tableSelector.appendChild(option);
+        });
+        if (tables.length > 0) {
+          tableSelector.value = tables[0];
+          currentFilters.table = tables[0];
+          await onTableChange();
+        }
+        hideLoading();
+      } catch (error) {
+        console.error('Error loading tables:', error);
+        showError('Failed to load tables. Please check database configuration.');
+        hideLoading();
+      }
+    }
 
+    async function onTableChange() {
+      const selectedTable = document.getElementById('tableSelector').value;
+      if (!selectedTable) {
+        document.getElementById('currentTableDisplay').textContent = 'No Table Selected';
+        clearData();
+        return;
+      }
+      currentFilters.table = selectedTable;
+      document.getElementById('currentTableDisplay').textContent = selectedTable;
+      console.log('Table selected:', selectedTable);
+      document.getElementById('identifierFilter').innerHTML = '<option value="all">All</option>';
+      currentFilters.identifier = 'all';
+      await loadIdentifierValues();
+      await loadAllRecords();
+    }
 
-// -------------------------
-// Pagination
-// -------------------------
-function changePage(dir) {
-  const totalPages = Math.ceil(totalRecords / rowsPerPage);
-  if (dir === 1 && currentPage < totalPages) loadData(currentPage + 1, currentFilters);
-  if (dir === -1 && currentPage > 1) loadData(currentPage - 1, currentFilters);
-}
+    async function loadIdentifierValues() {
+      try {
+        if (!currentFilters.table) return;
+        const values = await window.api?.getUniqueIdentifiers?.(currentFilters.table) || [];
+        const filterSelect = document.getElementById('identifierFilter');
+        const filterLabel = document.getElementById('identifierLabel');
+        filterSelect.innerHTML = '<option value="all">All</option>';
+        if (values.length > 0 && values[0].columnName) {
+          filterLabel.textContent = values[0].columnName;
+          values[0].values.forEach(val => {
+            const option = document.createElement('option');
+            option.value = val;
+            option.textContent = val;
+            filterSelect.appendChild(option);
+          });
+        } else {
+          filterLabel.textContent = 'Filter';
+        }
+      } catch (error) {
+        console.error('Error loading identifier values:', error);
+      }
+    }
 
+    async function loadAllRecords() {
+      try {
+        if (!currentFilters.table) { clearData(); return; }
+        showLoading();
+        hideError();
+        console.log('🔍 Loading records:', currentFilters);
+        const response = await window.api?.getAllRecords?.(currentFilters) || { records: [], columns: [], stats: { total: 0, pass: 0, fail: 0 } };
+        allRecords = response.records || [];
+        console.log('✅ Loaded', allRecords.length, 'records from', currentFilters.table);
+        updateStats(response.stats || { total: 0, pass: 0, fail: 0 });
+        document.getElementById('recordCount').textContent = allRecords.length;
+        updateRecordsTable(allRecords, response.columns);
+        hideLoading();
+      } catch (error) {
+        console.error('❌ Error:', error);
+        showError(error.message || 'Failed to load data');
+        clearData();
+        hideLoading();
+      }
+    }
 
-// -------------------------
-// Filters
-// -------------------------
-function applyFilters() {
-  const df = document.getElementById("dateFrom").value;
-  const mode = document.getElementById("modeFilter").value;
+    function updateStats(stats) {
+      document.getElementById('totalRecords').textContent = stats.total || 0;
+      document.getElementById('passCount').textContent = stats.pass || 0;
+      document.getElementById('failCount').textContent = stats.fail || 0;
+      const rate = stats.total > 0 ? ((stats.pass / stats.total) * 100).toFixed(1) : 0;
+      document.getElementById('passRate').textContent = rate + '%';
+    }
 
-  const filters = {};
-  if (df) filters.dateFrom = df;
-  if (mode) filters.mode = mode;
+    function updateRecordsTable(records, columns) {
+      const tableHeaders = document.getElementById('tableHeaders');
+      const tableBody = document.getElementById('recordsTable');
+      tableHeaders.innerHTML = '';
+      tableBody.innerHTML = '';
+      if (!records || records.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="10" class="no-data-message"><div><p style="font-size: 1.2rem; margin-bottom: 0.5rem;">📭 No Records Found</p><p>No data available.</p></div></td></tr>';
+        return;
+      }
+      const firstRecord = records[0];
+      const columnNames = columns && columns.length > 0 ? columns : Object.keys(firstRecord);
+      columnNames.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        tableHeaders.appendChild(th);
+      });
+      records.forEach(record => {
+        const row = document.createElement('tr');
+        row.onclick = () => showRecordDetails(record);
+        columnNames.forEach(col => {
+          const td = document.createElement('td');
+          const value = record[col];
+          if (value && (col.toLowerCase().includes('date') || col.toLowerCase().includes('time'))) {
+            try { td.textContent = new Date(value).toLocaleString(); }
+            catch { td.textContent = value || '-'; }
+          } else {
+            td.textContent = value !== null && value !== undefined ? value : '-';
+          }
+          row.appendChild(td);
+        });
+        tableBody.appendChild(row);
+      });
+    }
 
-  loadData(1, filters);
-}
+    async function showRecordDetails(record) {
+      const modal = document.getElementById('detailModal');
+      const modalTitle = document.getElementById('modalTitle');
+      const modalContent = document.getElementById('modalContent');
+      modalTitle.textContent = `Details for: ${Object.values(record)[0]}`;
+      showLoading();
+      try {
+        const history = await window.api?.getRecordHistory?.(record, currentFilters.table) || [];
+        if (history.length === 0) {
+          modalContent.innerHTML = '<div class="no-data-message"><p style="font-size: 1.2rem;">📭 No History Found</p></div>';
+        } else {
+          const columns = Object.keys(history[0]);
+          let tableHTML = '<table class="detail-table"><thead><tr>';
+          columns.forEach(col => { tableHTML += `<th>${col}</th>`; });
+          tableHTML += '</tr></thead><tbody>';
+          history.forEach(row => {
+            tableHTML += '<tr>';
+            columns.forEach(col => {
+              const value = row[col];
+              let displayValue = value;
+              if (value && (col.toLowerCase().includes('date') || col.toLowerCase().includes('time'))) {
+                try { displayValue = new Date(value).toLocaleString(); }
+                catch { displayValue = value || '-'; }
+              } else {
+                displayValue = value !== null && value !== undefined ? value : '-';
+              }
+              tableHTML += `<td>${displayValue}</td>`;
+            });
+            tableHTML += '</tr>';
+          });
+          tableHTML += '</tbody></table>';
+          modalContent.innerHTML = tableHTML;
+        }
+        modal.classList.add('active');
+        hideLoading();
+      } catch (error) {
+        console.error('Error loading history:', error);
+        modalContent.innerHTML = '<div class="no-data-message"><p style="color: var(--accent-danger);">❌ Error</p><p>' + error.message + '</p></div>';
+        modal.classList.add('active');
+        hideLoading();
+      }
+    }
 
-function resetFilters() {
-  document.getElementById("dateFrom").value = "";
-  document.getElementById("modeFilter").value = "";
-  loadData(1, {});
-}
+    function closeModal() { document.getElementById('detailModal').classList.remove('active'); }
+    window.onclick = function(event) { if (event.target === document.getElementById('detailModal')) closeModal(); }
 
+    function clearData() {
+      document.getElementById('totalRecords').textContent = '0';
+      document.getElementById('passCount').textContent = '0';
+      document.getElementById('failCount').textContent = '0';
+      document.getElementById('passRate').textContent = '0%';
+      document.getElementById('recordCount').textContent = '0';
+      document.getElementById('tableHeaders').innerHTML = '';
+      document.getElementById('recordsTable').innerHTML = '';
+      allRecords = [];
+    }
 
-// -------------------------
-// EXPORT MENU
-// -------------------------
-document.getElementById("exportMainBtn").addEventListener("click", () => {
-  const menu = document.getElementById("exportMenu");
-  menu.style.display = menu.style.display === "block" ? "none" : "block";
-});
+    function applyFilters() {
+      if (!currentFilters.table) { alert('Please select a table first'); return; }
+      currentFilters.date = document.getElementById('dateFilter').value;
+      currentFilters.shift = document.getElementById('shiftFilter').value;
+      currentFilters.identifier = document.getElementById('identifierFilter').value;
+      console.log('Applying filters:', currentFilters);
+      loadAllRecords();
+    }
 
-document.addEventListener("click", (e) => {
-  const btn = document.getElementById("exportMainBtn");
-  const menu = document.getElementById("exportMenu");
-  if (!btn.contains(e.target) && !menu.contains(e.target)) {
-    menu.style.display = "none";
-  }
-});
+    document.getElementById('tableSelector').addEventListener('change', onTableChange);
+    document.getElementById('dateFilter').addEventListener('change', applyFilters);
+    document.getElementById('shiftFilter').addEventListener('change', applyFilters);
+    document.getElementById('identifierFilter').addEventListener('change', applyFilters);
 
-function goToCharts() {
-  window.location.href = "charts.html";
-}
+    async function exportData() {
+      if (allRecords.length === 0) { alert('No data to export'); return; }
+      try {
+        if (window.api && window.api.exportData) {
+          await window.api.exportData({ records: allRecords }, currentFilters);
+        } else {
+          const columns = Object.keys(allRecords[0]);
+          let csv = columns.join(',') + '\n';
+          allRecords.forEach(record => {
+            const row = columns.map(col => {
+              const value = record[col];
+              return value !== null && value !== undefined ? `"${value}"` : '';
+            });
+            csv += row.join(',') + '\n';
+          });
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `${currentFilters.table}_${currentFilters.date}.csv`;
+          a.click();
+        }
+      } catch (error) {
+        console.error('Export error:', error);
+        alert('Failed to export: ' + error.message);
+      }
+    }
 
-function openDBSettings() {
-  window.database.openDBSettings();
-}
-
-window.api?.onDBUpdated?.(() => location.reload());
-
-
-
-window.databaseUpdated = false;
-
-window.electron?.ipcRenderer?.on("refresh-after-db-update", () => {
-  console.log("DB updated → refreshing table...");
-  window.location.reload();
-});
-
-window.addEventListener("db-updated", () => {
-  console.log("Database updated – reloading tables...");
-  loadTables();
-});
-
-</script>
+    async function openSettings() { if (window.api && window.api.openSettings) await window.api.openSettings(); }
+    function logout() { if (window.api && window.api.logout) window.api.logout(); }
+  </script>
 </body>
 </html>

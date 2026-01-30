@@ -1,133 +1,626 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<style>
-body {
-  font-family: Arial;
-  background: #111;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
-}
-.box {
-  width: 330px;
-  padding: 25px;
-  background: #1c1c1c;
-  border-radius: 10px;
-}
-input {
-  width: 100%;
-  padding: 12px;
-  margin: 10px 0;
-  border-radius: 6px;
-  border: 1px solid #444;
-  background: #222;
-  color: white;
-  font-size: 15px;
-}
-button {
-  width: 100%;
-  padding: 12px;
-  background: #4caf50;
-  border: none;
-  border-radius: 6px;
-  font-size: 16px;
-  color: white;
-  cursor: pointer;
-}
-button:hover {
-  background: #46a049;
-}
-a {
-  color: #6ea8ff;
-  cursor: pointer;
-}
-#msg {
-  margin-top: 10px;
-  height: 18px;
-  font-size: 14px;
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up - Production Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #131829;
+      --bg-card: #1a1f35;
+      --accent-primary: #00d4ff;
+      --accent-secondary: #7c3aed;
+      --text-primary: #ffffff;
+      --text-secondary: #94a3b8;
+      --border: #2d3548;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Outfit', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: 
+        radial-gradient(circle at 30% 40%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 70% 60%, rgba(124, 58, 237, 0.15) 0%, transparent 50%);
+      animation: rotate 20s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes rotate {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: var(--accent-primary);
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: float 10s infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) translateX(0); }
+      50% { transform: translateY(-100px) translateX(50px); }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 480px;
+      padding: 2rem;
+    }
+
+    .signup-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 3rem;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: slideUp 0.6s ease-out;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+    }
+
+    h2 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+      font-size: 1.1rem;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      color: var(--text-primary);
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+      padding-right: 3rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-secondary);
+      opacity: 0.5;
+    }
+
+    /* Role badges */
+    .role-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .role-option {
+      padding: 1rem;
+      background: var(--bg-secondary);
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+
+    .role-option:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+
+    .role-option.selected {
+      border-color: var(--accent-primary);
+      background: rgba(0, 212, 255, 0.1);
+    }
+
+    .role-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .role-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .password-strength {
+      margin-top: 0.5rem;
+      height: 4px;
+      background: var(--bg-secondary);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .password-strength-bar {
+      height: 100%;
+      width: 0;
+      transition: all 0.3s ease;
+      border-radius: 2px;
+    }
+
+    .password-strength-bar.weak {
+      width: 33%;
+      background: #ef4444;
+    }
+
+    .password-strength-bar.medium {
+      width: 66%;
+      background: #f59e0b;
+    }
+
+    .password-strength-bar.strong {
+      width: 100%;
+      background: #10b981;
+    }
+
+    button {
+      width: 100%;
+      padding: 1rem;
+      background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    button:hover::before {
+      left: 100%;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      margin: 2rem 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .divider span {
+      padding: 0 1rem;
+    }
+
+    .login-link {
+      text-align: center;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    .login-link a {
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.3s ease;
+    }
+
+    .login-link a:hover {
+      opacity: 0.8;
+    }
+
+    #msg {
+      margin-top: 1rem;
+      padding: 0.875rem;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      text-align: center;
+      display: none;
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    #msg.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      display: block;
+    }
+
+    #msg.success {
+      background: rgba(16, 185, 129, 0.1);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      display: block;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      margin-left: 0.5rem;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .container {
+        padding: 1rem;
+      }
+
+      .signup-box {
+        padding: 2rem 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.75rem;
+      }
+
+      .role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
-
 <body>
-<div class="box">
-  <h2 style="text-align:center;">Create Account</h2>
+  <!-- Particles -->
+  <div class="particle" style="top: 15%; left: 25%; animation-delay: 0s;"></div>
+  <div class="particle" style="top: 25%; left: 75%; animation-delay: 2s;"></div>
+  <div class="particle" style="top: 65%; left: 15%; animation-delay: 4s;"></div>
+  <div class="particle" style="top: 75%; left: 85%; animation-delay: 6s;"></div>
 
-  <input id="email" type="email" autocomplete="off" placeholder="Email">
-  <input id="password" type="password" autocomplete="new-password" placeholder="Password">
-  <input id="confirmPassword" type="password" autocomplete="new-password" placeholder="Confirm Password">
+  <div class="container">
+    <div class="signup-box">
+      <div class="logo">🏭</div>
+      <h2>Create Account</h2>
+      <p class="subtitle">Join the production dashboard today</p>
 
-  <label style="font-size: 12px; color: #aaa;">Select Access Level:</label>
-<select id="role" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 6px; border: 1px solid #444; background: #222; color: white;">
-  <option value="Operator">Operator</option>
-  <option value="Supervisor">Supervisor</option>
-  <option value="Maintenance">Maintenance</option>
-  <option value="Developer">Developer</option>
-</select>
+      <div class="input-group">
+        <label for="email">Email Address</label>
+        <div class="input-wrapper">
+          <span class="input-icon">📧</span>
+          <input 
+            id="email" 
+            type="email" 
+            autocomplete="off" 
+            placeholder="Enter your email"
+            required
+          >
+        </div>
+      </div>
 
-  <button id="signupBtn">Sign Up</button>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input 
+            id="password" 
+            type="password" 
+            autocomplete="new-password" 
+            placeholder="Create a password"
+            required
+          >
+        </div>
+        <div class="password-strength">
+          <div class="password-strength-bar" id="strengthBar"></div>
+        </div>
+      </div>
 
-  <p style="margin-top:12px;">Already have an account? <a id="goLogin">Login</a></p>
+      <div class="input-group">
+        <label for="confirmPassword">Confirm Password</label>
+        <div class="input-wrapper">
+          <span class="input-icon">🔒</span>
+          <input 
+            id="confirmPassword" 
+            type="password" 
+            autocomplete="new-password" 
+            placeholder="Confirm your password"
+            required
+          >
+        </div>
+      </div>
 
-  <p id="msg"></p>
-</div>
+      <div class="input-group">
+        <label>Select Your Role</label>
+        <div class="role-grid">
+          <div class="role-option" data-role="Operator">
+            <div class="role-icon">👷</div>
+            <div class="role-name">Operator</div>
+          </div>
+          <div class="role-option" data-role="Supervisor">
+            <div class="role-icon">👔</div>
+            <div class="role-name">Supervisor</div>
+          </div>
+          <div class="role-option" data-role="Maintenance">
+            <div class="role-icon">🔧</div>
+            <div class="role-name">Maintenance</div>
+          </div>
+          <div class="role-option" data-role="Developer">
+            <div class="role-icon">💻</div>
+            <div class="role-name">Developer</div>
+          </div>
+        </div>
+        <input type="hidden" id="role" value="">
+      </div>
 
-<script>
-// -------------------------------
-// SIGNUP BUTTON
-// -------------------------------
-// Change the first line of the click handler:
-document.getElementById("signupBtn").onclick = async () => {
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value.trim();
-  const confirmPassword = document.getElementById("confirmPassword").value.trim();
-  const role = document.getElementById("role").value;
-  const msg = document.getElementById("msg");
+      <button id="signupBtn">
+        Create Account
+      </button>
 
-  msg.style.color = "red";
-  msg.textContent = "";
+      <div id="msg"></div>
 
-  if (!email || !password || !confirmPassword) {
-    msg.textContent = "Please fill all fields";
-    return;
-  }
+      <div class="divider">
+        <span>or</span>
+      </div>
 
-  if (password !== confirmPassword) {
-    msg.textContent = "Passwords do not match";
-    return;
-  }
+      <div class="login-link">
+        Already have an account? <a id="goLogin">Sign in</a>
+      </div>
+    </div>
+  </div>
 
-  if (password.length < 6) {
-    msg.textContent = "Password must be at least 6 characters";
-    return;
-  }
+  <script>
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
+    const confirmPasswordInput = document.getElementById("confirmPassword");
+    const roleInput = document.getElementById("role");
+    const signupBtn = document.getElementById("signupBtn");
+    const msg = document.getElementById("msg");
+    const strengthBar = document.getElementById("strengthBar");
 
-  const result = await window.auth.signup({ email, password });
+    // Role selection
+    document.querySelectorAll('.role-option').forEach(option => {
+      option.addEventListener('click', () => {
+        document.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        roleInput.value = option.dataset.role;
+      });
+    });
 
-  if (!result.success) {
-    msg.textContent = result.message;
-    return;
-  }
+    // Password strength indicator
+    passwordInput.addEventListener('input', () => {
+      const password = passwordInput.value;
+      let strength = 0;
+      
+      if (password.length >= 6) strength++;
+      if (password.length >= 10) strength++;
+      if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+      if (/\d/.test(password)) strength++;
+      if (/[^a-zA-Z0-9]/.test(password)) strength++;
 
-  msg.style.color = "green";
-  msg.textContent = "Account created! Redirecting to login...";
+      strengthBar.className = 'password-strength-bar';
+      if (strength <= 2) strengthBar.classList.add('weak');
+      else if (strength <= 4) strengthBar.classList.add('medium');
+      else strengthBar.classList.add('strong');
+    });
 
-  setTimeout(() => {
-    window.auth.openLogin();
-  }, 1500);
-};
+    // Enter key support
+    confirmPasswordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        signupBtn.click();
+      }
+    });
 
-// -------------------------------
-// GO TO LOGIN PAGE
-// -------------------------------
-document.getElementById("goLogin").onclick = () => {
-  window.auth.openLogin();
-};
-</script>
+    // Signup button handler
+    signupBtn.onclick = async () => {
+      const email = emailInput.value.trim();
+      const password = passwordInput.value.trim();
+      const confirmPassword = confirmPasswordInput.value.trim();
+      const role = roleInput.value;
 
+      // Reset message
+      msg.className = "";
+      msg.textContent = "";
+
+      // Validation
+      if (!email || !password || !confirmPassword) {
+        msg.className = "error";
+        msg.textContent = "Please fill in all fields";
+        return;
+      }
+
+      if (!email.includes("@")) {
+        msg.className = "error";
+        msg.textContent = "Please enter a valid email address";
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        msg.className = "error";
+        msg.textContent = "Passwords do not match";
+        return;
+      }
+
+      if (password.length < 6) {
+        msg.className = "error";
+        msg.textContent = "Password must be at least 6 characters";
+        return;
+      }
+
+      if (!role) {
+        msg.className = "error";
+        msg.textContent = "Please select a role";
+        return;
+      }
+
+      // Show loading state
+      signupBtn.disabled = true;
+      const originalText = signupBtn.textContent;
+      signupBtn.innerHTML = 'Creating account...<span class="spinner"></span>';
+
+      try {
+        // Call auth API
+        const result = await window.auth.signup({ email, password, role });
+
+        if (!result.success) {
+          msg.className = "error";
+          msg.textContent = result.message || "Signup failed. Please try again.";
+          signupBtn.disabled = false;
+          signupBtn.textContent = originalText;
+          return;
+        }
+
+        // Success
+        msg.className = "success";
+        msg.textContent = "Account created! Redirecting to login...";
+
+        setTimeout(() => {
+          window.auth.openLogin();
+        }, 1500);
+
+      } catch (error) {
+        msg.className = "error";
+        msg.textContent = "An error occurred. Please try again.";
+        signupBtn.disabled = false;
+        signupBtn.textContent = originalText;
+      }
+    };
+
+    // Go to login
+    document.getElementById("goLogin").onclick = () => {
+      window.auth.openLogin();
+    };
+  </script>
 </body>
 </html>
